@@ -22,6 +22,11 @@ services:
       # Required: empty ${…:-} used to silently break the career form.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:?Set TELEGRAM_CHAT_ID in .env}
+      # Optional comma-separated Origins for POST /api/career (in addition to build-time site URL).
+      CAREER_ALLOWED_ORIGINS: ${CAREER_ALLOWED_ORIGINS:-}
+      # Trust X-Real-IP / X-Forwarded-For from nginx (overwrites with $remote_addr).
+      # Do not set this when Next is reachable without a reverse proxy.
+      TRUST_PROXY: "1"
       # NEXT_PUBLIC_* is inlined at image build time (see Dockerfile ARG / CI build-arg).
       # Runtime env does not update client bundles — rebuild the frontend image to change the domain.
     healthcheck:
@@ -43,6 +48,11 @@ services:
   nginx:
     image: ${NGINX_IMAGE:?Set NGINX_IMAGE to a GHCR image@sha256 digest}
     restart: unless-stopped
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+    # Cap drop is limited: nginx needs NET_BIND_SERVICE for :80/:443 as non-root
+    # would require image changes; still block privilege escalation.
     ports:
       - "80:80"
       - "443:443"
@@ -52,12 +62,23 @@ services:
       - certbot_conf:/etc/letsencrypt:ro
       - certbot_www:/var/www/certbot:ro
       - nginx_reload:/var/run/nginx-reload
-      - ./log:/var/log/levbarber
     # service_started (not service_healthy): nginx must serve
     # /.well-known/acme-challenge even if Next is still booting or unhealthy.
     depends_on:
       frontend:
         condition: service_started
+    healthcheck:
+      # Host must match server_name — bare 127.0.0.1 hits default_server (444).
+      # No curl -f: 502 while Next boots still means nginx is up (needed for ACME).
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sS -o /dev/null --connect-timeout 2 -H \"Host: $${DOMAIN}\" http://127.0.0.1/ || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     logging:
       driver: json-file
       options:

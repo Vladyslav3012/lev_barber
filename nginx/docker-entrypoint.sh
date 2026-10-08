@@ -21,8 +21,6 @@ else
 fi
 
 mkdir -p /var/run/nginx-reload
-mkdir -p /var/log/levbarber
-touch /var/log/levbarber/nginx-access.log /var/log/levbarber/nginx-error.log
 
 (
   while true; do

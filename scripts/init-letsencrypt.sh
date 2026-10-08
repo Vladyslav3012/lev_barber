@@ -57,8 +57,10 @@ wait_nginx_http() {
   while [ "$elapsed" -lt "$timeout" ]; do
     local state code
     state="$("${COMPOSE[@]}" ps nginx --format '{{.State}}' 2>/dev/null | head -n1 || true)"
+    # Host must match server_name (default_server returns 444 for bare IP).
     # Any HTTP response means nginx is up. 502 from Next is fine for ACME webroot.
-    code="$(curl -sS -o /dev/null --connect-timeout 2 -w "%{http_code}" "http://127.0.0.1/" 2>/dev/null || true)"
+    code="$(curl -sS -o /dev/null --connect-timeout 2 -w "%{http_code}" \
+      -H "Host: ${DOMAIN}" "http://127.0.0.1/" 2>/dev/null || true)"
     if [ "$state" = "running" ] && [[ "$code" =~ ^[2345][0-9][0-9]$ ]]; then
       echo "==> nginx is accepting HTTP."
       return 0
@@ -92,5 +94,22 @@ echo "==> Requesting Let's Encrypt certificate for ${DOMAIN} and www.${DOMAIN}..
 
 echo "==> Restarting nginx to enable HTTPS..."
 "${COMPOSE[@]}" restart nginx
+
+echo "==> Checking https://${DOMAIN}/ ..."
+smoke_ok=0
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  code="$(curl -sS -o /dev/null --connect-timeout 5 --max-time 20 -w "%{http_code}" \
+    -L --max-redirs 3 "https://${DOMAIN}/" 2>/dev/null || true)"
+  if [ "$code" = "200" ]; then
+    smoke_ok=1
+    break
+  fi
+  sleep 3
+done
+if [ "$smoke_ok" -ne 1 ]; then
+  echo "==> HTTPS smoke failed after cert issue (last HTTP ${code:-000})." >&2
+  "${COMPOSE[@]}" ps || true
+  exit 1
+fi
 
 echo "==> Done. Open https://${DOMAIN}/"

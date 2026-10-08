@@ -1,6 +1,7 @@
 FROM nginx:1.27.5-alpine
 
-RUN apk add --no-cache gettext
+# gettext: envsubst for templates; curl: compose healthcheck
+RUN apk add --no-cache gettext curl
 
 COPY templates/ /etc/nginx/templates/
 COPY snippets/ /etc/nginx/snippets/

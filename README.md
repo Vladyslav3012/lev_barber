@@ -18,6 +18,8 @@ npm run dev
 | Variable | When | Purpose |
 |----------|------|---------|
 | `NEXT_PUBLIC_SITE_URL` | **required at build** | Canonical / OG / sitemap / Origin checks (`https://…`, без `/` в кінці). Вшивається в образ на `next build` (Dockerfile `ARG` / CI build-arg). Зміна домену → перезібрати frontend (`--build` або новий GHCR digest), самого `docker compose up` недостатньо |
+| `CAREER_ALLOWED_ORIGINS` | optional (runtime) | Додаткові дозволені Origins для форми (comma-separated absolute URLs). У production Host/X-Forwarded-Host не розширюють allowlist |
+| `TRUST_PROXY` | compose = `1` | Довіряти `X-Real-IP` / `X-Forwarded-For` від nginx для rate limit. Не вмикати на голому `next start` |
 | `TELEGRAM_BOT_TOKEN` | **required in prod** | Bot API (compose `:?` + Next instrumentation fail-fast; local API → 503) |
 | `TELEGRAM_CHAT_ID` | **required in prod** | Chat/group for applications |
 | `DOMAIN` | Docker/nginx | Apex domain (напр. `levbarber.ua`) |
@@ -51,19 +53,24 @@ chmod +x scripts/*.sh nginx/docker-entrypoint.sh
 docker compose -f docker-compose.prod.yml -f docker-compose.prod.build.yml up --build -d
 ```
 
-Renew TLS (cron раз на тиждень):
+Renew TLS — один раз на сервері після bootstrap (ставись weekly cron):
 
 ```bash
-./scripts/renew-certs.sh
+./scripts/install-cert-renewal.sh
+# або вручну: ./scripts/renew-certs.sh
 ```
+
+CI синхронізує `renew-certs.sh` / `init-letsencrypt.sh` / `install-cert-renewal.sh` на кожен деплой. Cron треба встановити один раз (`install-cert-renewal.sh`).
 
 ### CI/CD (GHCR)
 
 ```text
-PR / main → lint + tsc + npm build
-         → (main) build & push GHCR (sha-<commit>, main)
-         → SCP compose + deploy-release.sh
-         → docker pull @sha256 → up → healthcheck
+PR / main → lint + tsc + npm test + npm build
+         → docker build frontend+nginx (no push) — catch Dockerfile breaks on PR
+         → (main) concurrency group production-deploy (cancel-in-progress: false)
+         → build & push GHCR (sha-<commit>, main)
+         → SCP compose + deploy scripts
+         → docker pull @sha256 → up → container health → public HTTPS smoke
          → success: .release-state; failure: auto-rollback
 ```
 
@@ -83,7 +90,8 @@ PR / main → lint + tsc + npm build
 | `DEPLOY_SSH_KNOWN_HOSTS` | secret | Pinned host key (не `ssh-keyscan` у CI) |
 | `GHCR_PULL_TOKEN` | secret | PAT з `read:packages` (для private packages з private repo — також `repo`) |
 | `GHCR_USERNAME` | secret (optional) | Login user; default — `repository_owner` |
-| `NEXT_PUBLIC_SITE_URL` | variable або secret | Build-arg для frontend-образу (не runtime env) |
+| `NEXT_PUBLIC_SITE_URL` | variable або secret | Build-arg для frontend-образу + `SMOKE_BASE_URL` після деплою |
+| `CAREER_ALLOWED_ORIGINS` | server `.env` (optional) | Додаткові Origins для `POST /api/career` (comma-separated URL) |
 
 `DEPLOY_SSH_KNOWN_HOSTS` — закріплений host key сервера. Згенерувати локально після перевірки fingerprint:
 
@@ -98,7 +106,7 @@ Actions у workflow закріплені на повні commit SHA (не floati
 
 #### Rollback
 
-Автоматично: якщо новий реліз не стає healthy за тайм-аут, [`scripts/deploy-release.sh`](scripts/deploy-release.sh) повертає last known-good digests з `.release-state` і знову `pull` + `up`.
+Автоматично: якщо новий реліз не проходить container health або public HTTPS smoke, [`scripts/deploy-release.sh`](scripts/deploy-release.sh) повертає last known-good digests з `.release-state` і знову `pull` + `up` + smoke.
 
 Вручну (відкат успішного, але поганого релізу на `PREVIOUS`):
 
@@ -119,7 +127,9 @@ export GHCR_PULL_TOKEN=…
 
 ## Scripts
 
-- `npm run dev` / `build` / `start` / `lint`
+- `npm run dev` / `build` / `start` / `lint` / `test`
 - `npx tsc --noEmit` — typecheck
-- `scripts/deploy-release.sh` — pull by digest, health wait, `.release-state`, auto-rollback
-- `scripts/init-letsencrypt.sh` / `scripts/renew-certs.sh` — TLS
+- `scripts/deploy-release.sh` — pull by digest, health wait, public HTTPS smoke, `.release-state`, auto-rollback, `docker logout`
+- `scripts/init-letsencrypt.sh` — first TLS + HTTPS smoke
+- `scripts/renew-certs.sh` — certbot renew + nginx reload hook
+- `scripts/install-cert-renewal.sh` — weekly cron for renew (once per host)
