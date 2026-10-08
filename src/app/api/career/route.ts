@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  contactError,
-  messageError,
-  nameError,
-  normalizeContact,
-  singleLine,
+  careerFieldsSchema,
+  formatCareerTelegramHtml,
 } from "@/lib/career-validation";
 import { getSiteUrl } from "@/lib/site-url";
 
 const WINDOW_MS = 60 * 1000;
 /** Successful Telegram sends per IP per window (validation failures do not count). */
 const MAX_REQUESTS = 3;
+/** Career JSON is tiny (name/contact/message); reject anything larger early. */
+const MAX_BODY_BYTES = 16 * 1024;
 const hits = new Map<string, number[]>();
 
 function pruneHits(now: number) {
@@ -21,6 +20,10 @@ function pruneHits(now: number) {
   }
 }
 
+/**
+ * In-process cap on successful sends. Shared flood control lives in nginx
+ * (`limit_req zone=career`); this layer still limits Telegram spam per replica.
+ */
 function rateLimited(ip: string) {
   const now = Date.now();
   if (hits.size > 500) pruneHits(now);
@@ -41,20 +44,22 @@ function asText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/**
+ * Client IP for the in-app limiter. Only headers that our reverse proxy
+ * overwrites (see nginx templates: X-Real-IP / X-Forwarded-For ← $remote_addr).
+ * Do not fall back to a client-supplied X-Forwarded-For chain.
+ */
 function clientIp(request: NextRequest) {
-  // Prefer platform-injected IP when present (e.g. Vercel).
   const vercel = request.headers.get("x-vercel-forwarded-for");
   if (vercel) return vercel.split(",")[0]?.trim() || "unknown";
 
-  // Prefer X-Real-IP when nginx overwrites it with $remote_addr (see nginx templates).
   const realIp = request.headers.get("x-real-ip")?.trim();
   if (realIp) return realIp;
 
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    // Leftmost is the client when the edge overwrites (or is the only hop).
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
+  // Single hop set by our nginx (`proxy_set_header X-Forwarded-For $remote_addr`).
+  // Reject multi-value lists — those are not produced by our templates.
+  const forwarded = request.headers.get("x-forwarded-for")?.trim();
+  if (forwarded && !forwarded.includes(",")) return forwarded;
 
   return "unknown";
 }
@@ -67,7 +72,7 @@ function configuredSiteOrigin() {
   }
 }
 
-/** Origin of this request as seen by the client (supports proxies / ngrok). */
+/** Dev-only: origin derived from this request (ngrok / local Host). Never used in production. */
 function requestPublicOrigin(request: NextRequest) {
   const forwardedHost = request.headers
     .get("x-forwarded-host")
@@ -94,14 +99,19 @@ function requestPublicOrigin(request: NextRequest) {
 }
 
 function isAllowedOrigin(request: NextRequest) {
+  const isProd = process.env.NODE_ENV === "production";
   const allowed = new Set<string>();
   const configured = configuredSiteOrigin();
   if (configured) allowed.add(configured);
-  const publicOrigin = requestPublicOrigin(request);
-  if (publicOrigin) allowed.add(publicOrigin);
+
+  // Production: only NEXT_PUBLIC_SITE_URL. Host / X-Forwarded-Host must not expand the allowlist.
+  if (!isProd) {
+    const publicOrigin = requestPublicOrigin(request);
+    if (publicOrigin) allowed.add(publicOrigin);
+  }
 
   if (allowed.size === 0) {
-    return process.env.NODE_ENV !== "production";
+    return !isProd;
   }
 
   const origin = request.headers.get("origin");
@@ -122,8 +132,54 @@ function isAllowedOrigin(request: NextRequest) {
     }
   }
 
-  // Same-origin POSTs from some clients omit both; allow only outside production.
-  return process.env.NODE_ENV !== "production";
+  // Browsers sending a cross-site or same-site POST normally include Origin.
+  // Missing both Origin and Referer is not treated as safe in production.
+  return !isProd;
+}
+
+class BodyTooLargeError extends Error {
+  constructor() {
+    super("body too large");
+    this.name = "BodyTooLargeError";
+  }
+}
+
+async function readJsonBody(request: NextRequest): Promise<Record<string, unknown>> {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength !== null) {
+    const len = Number(contentLength);
+    if (!Number.isFinite(len) || len < 0 || len > MAX_BODY_BYTES) {
+      throw new BodyTooLargeError();
+    }
+  }
+
+  const reader = request.body?.getReader();
+  if (!reader) {
+    throw new SyntaxError("empty body");
+  }
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BODY_BYTES) {
+      await reader.cancel().catch(() => {});
+      throw new BodyTooLargeError();
+    }
+    chunks.push(value);
+  }
+
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(merged);
+  return JSON.parse(text) as Record<string, unknown>;
 }
 
 const TELEGRAM_TIMEOUT_MS = 8_000;
@@ -142,18 +198,16 @@ async function sendTelegramMessage(
         body: JSON.stringify({
           chat_id: chatId,
           text,
+          parse_mode: "HTML",
+          disable_web_page_preview: true,
         }),
         signal: AbortSignal.timeout(TELEGRAM_TIMEOUT_MS),
       },
     );
 
     if (!telegram.ok) {
-      const detail = await telegram.text().catch(() => "");
-      console.error(
-        "Telegram send failed",
-        telegram.status,
-        detail.slice(0, 200),
-      );
+      // Log status only — never forward Telegram body (may echo bot token).
+      console.error("Telegram send failed", telegram.status);
       return false;
     }
 
@@ -177,8 +231,14 @@ export async function POST(request: NextRequest) {
 
   let body: Record<string, unknown>;
   try {
-    body = (await request.json()) as Record<string, unknown>;
-  } catch {
+    body = await readJsonBody(request);
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) {
+      return NextResponse.json(
+        { ok: false, error: "Некоректний запит." },
+        { status: 413 },
+      );
+    }
     return NextResponse.json(
       { ok: false, error: "Некоректний запит." },
       { status: 400 },
@@ -190,11 +250,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  const name = asText(body.name);
-  const contact = normalizeContact(asText(body.contact));
-  const message = asText(body.message);
-
-  if (nameError(name) || contactError(contact) || messageError(message)) {
+  const parsed = careerFieldsSchema.safeParse({
+    name: body.name,
+    contact: body.contact,
+    message: body.message,
+  });
+  if (!parsed.success) {
     return NextResponse.json(
       { ok: false, error: "Заповни всі поля коректно." },
       { status: 400 },
@@ -209,24 +270,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
 
   if (!token || !chatId) {
+    console.error("Career form misconfigured: TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID missing");
     return NextResponse.json(
-      { ok: false, error: "Форма ще не підключена. Напиши в Instagram." },
+      { ok: false, error: "Форма тимчасово недоступна. Напиши в Instagram." },
       { status: 503 },
     );
   }
 
-  const text = [
-    "Нова заявка — стати барбером",
-    `Ім’я: ${singleLine(name)}`,
-    `Контакт: ${singleLine(contact)}`,
-    "",
-    message,
-  ].join("\n");
-
+  const text = formatCareerTelegramHtml(parsed.data);
   const sent = await sendTelegramMessage(token, chatId, text);
   if (!sent) {
     return NextResponse.json(

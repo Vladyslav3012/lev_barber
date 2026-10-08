@@ -33,6 +33,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         expires 1y;
         include /etc/nginx/snippets/security-headers.conf;
@@ -40,13 +41,17 @@ server {
     }
 
     location = /api/career {
+        # Shared rate limit across app replicas (zone defined in http-hardening.conf).
         limit_req zone=career burst=5 nodelay;
         limit_req_status 429;
+        # Career JSON is small; tighter than the 1M server default.
+        client_max_body_size 16k;
         proxy_pass http://$upstream_frontend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        # Overwrite so clients cannot spoof rate-limit identity.
+        # Overwrite so clients cannot spoof rate-limit identity or Host-derived origin.
         proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
@@ -56,6 +61,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";

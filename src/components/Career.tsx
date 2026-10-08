@@ -128,7 +128,7 @@ export function Career() {
         id="career-form"
         noValidate
         onSubmit={onSubmit}
-        className="mt-10 grid max-w-xl gap-5 border-t border-sand/20 pt-8"
+        className="relative mt-10 grid max-w-xl gap-5 border-t border-sand/20 pt-8"
         suppressHydrationWarning
       >
         <label className="grid gap-1.5">
@@ -227,12 +227,13 @@ export function Career() {
             </p>
           ) : null}
         </label>
+        {/* Honeypot: off-screen (not display:none) so naive bots still fill it. */}
         <input
           name="website"
           tabIndex={-1}
           autoComplete="off"
-          className="hidden"
           aria-hidden
+          className="absolute -left-[9999px] h-px w-px overflow-hidden opacity-0"
           suppressHydrationWarning
         />
 
