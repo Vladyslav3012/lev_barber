@@ -1,8 +1,48 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { site } from "@/data/site";
 import { latchTapFill } from "@/lib/latch-tap";
+
+const HERO_POSTER = "/hero-poster.v1.jpg";
+const HERO_VIDEO = "/hero.v1.mp4";
+
+type NetworkConnection = {
+  saveData?: boolean;
+  effectiveType?: string;
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
+};
+
+function networkConnection(): NetworkConnection | undefined {
+  const nav = navigator as Navigator & {
+    connection?: NetworkConnection;
+    mozConnection?: NetworkConnection;
+    webkitConnection?: NetworkConnection;
+  };
+  return nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
+}
+
+/**
+ * Skip the 2.6MB autoplay file when the user/network asks for less media:
+ * reduced motion, Save-Data, or very slow cellular.
+ * Phones still play — we only defer attaching <source> so the poster wins LCP.
+ */
+function shouldPlayHeroVideo() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return false;
+  }
+  const conn = networkConnection();
+  if (conn?.saveData) return false;
+  const type = conn?.effectiveType;
+  if (type === "slow-2g" || type === "2g") return false;
+  return true;
+}
+
+/** True for phones/tablets — defer video attach so poster paints first. */
+function prefersDeferredHeroVideo() {
+  return window.matchMedia("(pointer: coarse)").matches;
+}
 
 function CtaArrow() {
   return (
@@ -38,6 +78,9 @@ export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const cueWrapRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  // Start without <source> so reduced-motion / first paint never pull the 2.6MB file.
+  const [playVideo, setPlayVideo] = useState(false);
 
   // Lock hero height once so mobile browser chrome show/hide doesn't resize the section.
   useEffect(() => {
@@ -55,6 +98,83 @@ export function Hero() {
     window.addEventListener("orientationchange", lockHeight);
     return () => window.removeEventListener("orientationchange", lockHeight);
   }, []);
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const conn = networkConnection();
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const enable = () => {
+      if (!shouldPlayHeroVideo()) {
+        setPlayVideo(false);
+        return;
+      }
+      setPlayVideo(true);
+    };
+
+    const sync = () => {
+      if (idleId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+        idleId = undefined;
+      }
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
+
+      if (!shouldPlayHeroVideo()) {
+        setPlayVideo(false);
+        return;
+      }
+
+      // Desktop: attach immediately after hydration.
+      // Coarse pointer: wait a tick so poster/LCP isn't fighting the 2.6MB fetch.
+      if (prefersDeferredHeroVideo()) {
+        if ("requestIdleCallback" in window) {
+          idleId = window.requestIdleCallback(enable, { timeout: 1200 });
+        } else {
+          timeoutId = setTimeout(enable, 400);
+        }
+        return;
+      }
+      enable();
+    };
+
+    sync();
+    motionQuery.addEventListener("change", sync);
+    conn?.addEventListener?.("change", sync);
+    return () => {
+      motionQuery.removeEventListener("change", sync);
+      conn?.removeEventListener?.("change", sync);
+      if (idleId !== undefined && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !playVideo) return;
+
+    const tryPlay = () => {
+      void video.play().catch(() => {
+        // Autoplay can still be blocked; poster remains visible.
+      });
+    };
+
+    // play() right after <source> mounts often races the buffer and was
+    // swallowed — video then never started. Retry when data is ready.
+    video.load();
+    tryPlay();
+    video.addEventListener("loadeddata", tryPlay);
+    video.addEventListener("canplay", tryPlay);
+    return () => {
+      video.removeEventListener("loadeddata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
+    };
+  }, [playVideo]);
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -128,16 +248,17 @@ export function Hero() {
     >
       <div ref={frameRef} className="absolute inset-0 will-change-transform">
         <video
+          ref={videoRef}
           className="h-full w-full object-cover"
-          autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
-          poster="/hero-poster.v1.jpg"
+          autoPlay={playVideo}
+          preload={playVideo ? "auto" : "none"}
+          poster={HERO_POSTER}
           aria-hidden
         >
-          <source src="/hero.v1.mp4" type="video/mp4" />
+          {playVideo ? <source src={HERO_VIDEO} type="video/mp4" /> : null}
         </video>
       </div>
 
