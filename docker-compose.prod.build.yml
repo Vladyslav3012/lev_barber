@@ -1,0 +1,19 @@
+# Optional local/bootstrap override — not used by CI deploy.
+# Usage:
+#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.build.yml up --build -d
+#
+# Builds and tags images so FRONTEND_IMAGE / NGINX_IMAGE can point at local tags.
+
+services:
+  frontend:
+    build:
+      context: .
+      target: prod
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://${DOMAIN:-localhost}}
+    image: ${FRONTEND_IMAGE:-barber-frontend:local}
+
+  nginx:
+    build:
+      context: ./nginx
+    image: ${NGINX_IMAGE:-barber-nginx:local}

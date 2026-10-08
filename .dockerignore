@@ -6,9 +6,10 @@ out
 .DS_Store
 npm-debug.log
 yarn-error.log
-.env
-.env.*
+# Keep secrets and local env out of the Docker build context / builder layer cache.
+.env*
 !.env.example
+!.env.production.example
 README.md
 .git
 .github
@@ -16,4 +17,4 @@ README.md
 *.md
 !AGENTS.md
 .cursor-opt01.jpg
-log
+log/

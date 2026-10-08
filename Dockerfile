@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS base
+FROM node:22-bookworm-slim AS base
 
 WORKDIR /app
 
@@ -8,8 +8,8 @@ ENV NPM_CONFIG_FUND=false \
     NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
     NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
 
-COPY package.json package-lock.json* ./
-RUN npm ci --prefer-offline || npm install --prefer-offline
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 
@@ -30,7 +30,7 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
 
 RUN npm run build
 
-FROM node:20-bookworm-slim AS prod
+FROM node:22-bookworm-slim AS prod
 
 WORKDIR /app
 
@@ -38,13 +38,14 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     PORT=3000
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
+COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+
+RUN mkdir -p .next/cache && chown node:node .next/cache
+
+USER node
 
 EXPOSE 3000
 
-ENTRYPOINT ["sh", "/docker-entrypoint.sh"]
 CMD ["node", "server.js"]
