@@ -17,12 +17,20 @@ type FieldName = "name" | "contact" | "message";
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 const fieldClass =
-  "w-full bg-transparent py-2.5 text-mist outline-none transition-colors placeholder:text-mist/35";
+  "w-full bg-transparent py-2.5 text-mist outline-none transition-[border-color,box-shadow] placeholder:text-mist/35";
 
+/** Keyboard focus: sand ring (≥ WCAG non-text contrast vs charcoal). Mouse uses border only. */
 function fieldBorder(hasError: boolean) {
   return hasError
-    ? "border border-red-400/80"
-    : "border border-transparent border-b-mist/25 focus:border-sand";
+    ? "border border-red-400/80 focus-visible:ring-2 focus-visible:ring-red-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
+    : "border border-transparent border-b-mist/25 focus-visible:border-sand focus-visible:ring-2 focus-visible:ring-sand/70 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal";
+}
+
+/** Contact wraps prefix + input; ring on wrapper when the inner control is :focus-visible. */
+function contactShellBorder(hasError: boolean) {
+  return hasError
+    ? "border border-red-400/80 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-red-300/70 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal"
+    : "border border-transparent border-b-mist/25 focus-within:border-sand has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-sand/70 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal";
 }
 
 export function Career() {
@@ -69,6 +77,12 @@ export function Career() {
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       setStatus("idle");
+      const order: FieldName[] = ["name", "contact", "message"];
+      const first = order.find((name) => nextErrors[name]);
+      if (first) {
+        const el = form.elements.namedItem(first);
+        if (el instanceof HTMLElement) el.focus();
+      }
       return;
     }
 
@@ -157,7 +171,7 @@ export function Career() {
             Телефон або Instagram
           </span>
           <div
-            className={`flex items-baseline gap-1.5 ${fieldBorder(Boolean(fieldErrors.contact))}`}
+            className={`flex items-baseline gap-1.5 ${contactShellBorder(Boolean(fieldErrors.contact))}`}
           >
             {showPhonePrefix ? (
               <span className="shrink-0 py-2.5 pl-0 text-mist/50 select-none">
@@ -187,7 +201,7 @@ export function Career() {
                 clearField("contact");
               }}
               suppressHydrationWarning
-              className={`${fieldClass} min-w-0 border-0 focus:border-transparent`}
+              className={`${fieldClass} min-w-0 border-0`}
             />
           </div>
           {fieldErrors.contact ? (

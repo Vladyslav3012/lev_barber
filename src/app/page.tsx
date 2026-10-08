@@ -12,8 +12,11 @@ export default function Home() {
   return (
     <>
       <JsonLd />
+      <a href="#main" className="skip-link">
+        До змісту
+      </a>
       <Navbar />
-      <main className="overflow-x-clip">
+      <main id="main" className="overflow-x-clip" tabIndex={-1}>
         <Hero />
         <About />
         <Barbers />

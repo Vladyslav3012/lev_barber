@@ -124,9 +124,25 @@ export function Navbar() {
               {item.label}
             </a>
           ))}
+          <a
+            href={site.booking.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[13px] tracking-[0.12em] text-sand uppercase transition-colors duration-300 hover:text-mist"
+          >
+            Записатися
+          </a>
         </nav>
 
         <div className="flex items-center gap-0.5 md:gap-2">
+          <a
+            href={site.booking.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mr-1 text-[11px] tracking-[0.14em] text-sand uppercase transition-colors duration-200 hover:text-mist lg:hidden"
+          >
+            Запис
+          </a>
           <a
             href={site.tiktok.href}
             target="_blank"
@@ -184,6 +200,16 @@ export function Navbar() {
         aria-hidden={!open}
       >
         <nav ref={mobileNavRef} className="flex flex-col gap-1 px-5 py-6">
+          <a
+            href={site.booking.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            tabIndex={open ? undefined : -1}
+            onClick={() => setOpen(false)}
+            className="py-3 text-sm tracking-[0.14em] text-sand uppercase"
+          >
+            Записатися
+          </a>
           {site.nav.map((item) => (
             <a
               key={item.href}
