@@ -28,8 +28,8 @@ export function getSiteUrl() {
     const isLocal =
       parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
     if (!isLocal && parsed.protocol !== "https:") {
-      console.warn(
-        `[site-url] NEXT_PUBLIC_SITE_URL is "${raw}" — use https:// for a public deploy.`,
+      throw new Error(
+        `NEXT_PUBLIC_SITE_URL must use https:// for a public deploy (got "${raw}").`,
       );
     }
     return raw;

@@ -105,12 +105,20 @@ export function contactError(contact: string) {
   return null;
 }
 
+/** Letters (any script) plus spaces, hyphen, apostrophe — matches the form copy. */
+const NAME_PATTERN =
+  /^[\p{L}\p{M}]+(?:[\s'\u2019.-]+[\p{L}\p{M}]+)*$/u;
+
 export function nameError(name: string) {
   if (name.length < CAREER_LIMITS.name.min) {
     return "Вкажи ім’я — мінімум 2 літери.";
   }
   if (name.length > CAREER_LIMITS.name.max) {
     return "Ім’я занадто довге.";
+  }
+  const letters = name.match(/\p{L}/gu) ?? [];
+  if (letters.length < CAREER_LIMITS.name.min || !NAME_PATTERN.test(name)) {
+    return "Вкажи ім’я — мінімум 2 літери.";
   }
   return null;
 }

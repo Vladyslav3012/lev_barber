@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  BodyTooLargeError,
+  careerOriginContext,
+  clientIp,
+  isAllowedOrigin,
+  readCareerJsonBody,
+} from "@/lib/career-request";
+import {
   careerFieldsSchema,
   formatCareerTelegramHtml,
 } from "@/lib/career-validation";
-import { getSiteUrl } from "@/lib/site-url";
 
 const WINDOW_MS = 60 * 1000;
 /** Successful Telegram sends per IP per window (validation failures do not count). */
 const MAX_REQUESTS = 3;
-/** Career JSON is tiny (name/contact/message); reject anything larger early. */
-const MAX_BODY_BYTES = 16 * 1024;
 const hits = new Map<string, number[]>();
 
 function pruneHits(now: number) {
@@ -42,144 +46,6 @@ function recordHit(ip: string) {
 
 function asText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-/**
- * Client IP for the in-app limiter. Only headers that our reverse proxy
- * overwrites (see nginx templates: X-Real-IP / X-Forwarded-For ← $remote_addr).
- * Do not fall back to a client-supplied X-Forwarded-For chain.
- */
-function clientIp(request: NextRequest) {
-  const vercel = request.headers.get("x-vercel-forwarded-for");
-  if (vercel) return vercel.split(",")[0]?.trim() || "unknown";
-
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
-
-  // Single hop set by our nginx (`proxy_set_header X-Forwarded-For $remote_addr`).
-  // Reject multi-value lists — those are not produced by our templates.
-  const forwarded = request.headers.get("x-forwarded-for")?.trim();
-  if (forwarded && !forwarded.includes(",")) return forwarded;
-
-  return "unknown";
-}
-
-function configuredSiteOrigin() {
-  try {
-    return new URL(getSiteUrl()).origin;
-  } catch {
-    return null;
-  }
-}
-
-/** Dev-only: origin derived from this request (ngrok / local Host). Never used in production. */
-function requestPublicOrigin(request: NextRequest) {
-  const forwardedHost = request.headers
-    .get("x-forwarded-host")
-    ?.split(",")[0]
-    ?.trim();
-  const host = forwardedHost || request.headers.get("host")?.trim();
-  if (!host) return null;
-
-  const forwardedProto = request.headers
-    .get("x-forwarded-proto")
-    ?.split(",")[0]
-    ?.trim();
-  const proto =
-    forwardedProto ||
-    (host.startsWith("localhost") || host.startsWith("127.0.0.1")
-      ? "http"
-      : "https");
-
-  try {
-    return new URL(`${proto}://${host}`).origin;
-  } catch {
-    return null;
-  }
-}
-
-function isAllowedOrigin(request: NextRequest) {
-  const isProd = process.env.NODE_ENV === "production";
-  const allowed = new Set<string>();
-  const configured = configuredSiteOrigin();
-  if (configured) allowed.add(configured);
-
-  // Production: only NEXT_PUBLIC_SITE_URL. Host / X-Forwarded-Host must not expand the allowlist.
-  if (!isProd) {
-    const publicOrigin = requestPublicOrigin(request);
-    if (publicOrigin) allowed.add(publicOrigin);
-  }
-
-  if (allowed.size === 0) {
-    return !isProd;
-  }
-
-  const origin = request.headers.get("origin");
-  if (origin) {
-    try {
-      return allowed.has(new URL(origin).origin);
-    } catch {
-      return false;
-    }
-  }
-
-  const referer = request.headers.get("referer");
-  if (referer) {
-    try {
-      return allowed.has(new URL(referer).origin);
-    } catch {
-      return false;
-    }
-  }
-
-  // Browsers sending a cross-site or same-site POST normally include Origin.
-  // Missing both Origin and Referer is not treated as safe in production.
-  return !isProd;
-}
-
-class BodyTooLargeError extends Error {
-  constructor() {
-    super("body too large");
-    this.name = "BodyTooLargeError";
-  }
-}
-
-async function readJsonBody(request: NextRequest): Promise<Record<string, unknown>> {
-  const contentLength = request.headers.get("content-length");
-  if (contentLength !== null) {
-    const len = Number(contentLength);
-    if (!Number.isFinite(len) || len < 0 || len > MAX_BODY_BYTES) {
-      throw new BodyTooLargeError();
-    }
-  }
-
-  const reader = request.body?.getReader();
-  if (!reader) {
-    throw new SyntaxError("empty body");
-  }
-
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > MAX_BODY_BYTES) {
-      await reader.cancel().catch(() => {});
-      throw new BodyTooLargeError();
-    }
-    chunks.push(value);
-  }
-
-  const merged = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    merged.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-
-  const text = new TextDecoder("utf-8", { fatal: false }).decode(merged);
-  return JSON.parse(text) as Record<string, unknown>;
 }
 
 const TELEGRAM_TIMEOUT_MS = 8_000;
@@ -222,7 +88,7 @@ async function sendTelegramMessage(
 }
 
 export async function POST(request: NextRequest) {
-  if (!isAllowedOrigin(request)) {
+  if (!isAllowedOrigin(request.headers, careerOriginContext(request.headers))) {
     return NextResponse.json(
       { ok: false, error: "Некоректний запит." },
       { status: 403 },
@@ -231,7 +97,7 @@ export async function POST(request: NextRequest) {
 
   let body: Record<string, unknown>;
   try {
-    body = await readJsonBody(request);
+    body = await readCareerJsonBody(request);
   } catch (error) {
     if (error instanceof BodyTooLargeError) {
       return NextResponse.json(
@@ -262,7 +128,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const ip = clientIp(request);
+  const ip = clientIp(request.headers);
   if (rateLimited(ip)) {
     return NextResponse.json(
       { ok: false, error: "Забагато спроб. Спробуй пізніше." },
