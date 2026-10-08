@@ -71,11 +71,7 @@ export function Barbers() {
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-80"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(196,181,160,0.06) 14px, rgba(196,181,160,0.06) 15px)",
-              }}
+              className="career-card-hatch pointer-events-none absolute inset-0 opacity-80"
             />
             <span className="relative text-3xl leading-none text-sand/80">
               +

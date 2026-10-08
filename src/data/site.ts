@@ -48,7 +48,7 @@ export const site = {
     label: "TikTok LEV BARBER",
   },
   booking: {
-    href: "https://n1381485.alteg.io/company/1316669/personal/menu?o=",
+    href: "https://n1381485.alteg.io/company/1316669/personal/menu",
     cta: "Записатися онлайн",
   },
   maps: {

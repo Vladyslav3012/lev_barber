@@ -134,10 +134,10 @@ export function Hero() {
           loop
           playsInline
           preload="metadata"
-          poster="/hero-poster.jpg"
+          poster="/hero-poster.v1.jpg"
           aria-hidden
         >
-          <source src="/hero.mp4" type="video/mp4" />
+          <source src="/hero.v1.mp4" type="video/mp4" />
         </video>
       </div>
 

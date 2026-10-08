@@ -1,25 +1,32 @@
 import type { NextConfig } from "next";
+import { buildContentSecurityPolicy } from "./src/lib/csp";
+
+const isDev = process.env.NODE_ENV === "development";
+const contentSecurityPolicy = buildContentSecurityPolicy(isDev);
 
 const nextConfig: NextConfig = {
   // Slim image for Docker (see Dockerfile → .next/standalone).
   output: "standalone",
   // ngrok / phone testing: without this, Next blocks /_next/* from the tunnel
   // origin and client components never hydrate (links work, buttons don't).
-  allowedDevOrigins: [
-    "*.ngrok-free.dev",
-    "*.ngrok-free.app",
-    "*.ngrok.io",
-    "*.ngrok.app",
-  ],
+  ...(isDev
+    ? {
+        allowedDevOrigins: [
+          "*.ngrok-free.dev",
+          "*.ngrok-free.app",
+          "*.ngrok.io",
+          "*.ngrok.app",
+        ],
+      }
+    : {}),
   poweredByHeader: false,
   images: {
-    // Next 16 defaults to 4h; replaced public/ files kept serving old optimized images.
-    minimumCacheTTL: 60,
+    // Cache-bust via ?v=<mtime> (see versionedPublicSrc); long TTL is safe.
+    minimumCacheTTL: 86400, // 1 day
     localPatterns: [
-      // Allow ?v=<mtime> when public photos are replaced under the same filename.
+      // Omit search → any ?v=<mtime>; only these public folders use next/image.
       { pathname: "/atmosphere/**" },
       { pathname: "/barbers/**" },
-      { pathname: "/**", search: "" },
     ],
   },
   async headers() {
@@ -34,10 +41,25 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          {
+            // Enforce after Altegio widget + real traffic confirm no violations.
+            key: "Content-Security-Policy-Report-Only",
+            value: contentSecurityPolicy,
+          },
         ],
       },
       {
-        source: "/hero.mp4",
+        // Bump filename (hero.v2.mp4) when replacing; immutable cache is safe with a new URL.
+        source: "/hero.v1.mp4",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/hero-poster.v1.jpg",
         headers: [
           {
             key: "Cache-Control",

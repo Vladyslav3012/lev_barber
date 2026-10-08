@@ -52,6 +52,16 @@ body {
   filter: grayscale(1) invert(0.9) contrast(0.85) brightness(0.85);
 }
 
+.career-card-hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 14px,
+    rgba(196, 181, 160, 0.06) 14px,
+    rgba(196, 181, 160, 0.06) 15px
+  );
+}
+
 /*
   Mobile/ngrok: window.scrollY often stays 0, so JS scroll listeners are useless.
   CSS scroll-timeline still sees root scroll — same path that hides «Далі».
