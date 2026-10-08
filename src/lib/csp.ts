@@ -4,7 +4,8 @@
  * is embedded. Uses 'unsafe-inline' for styles/scripts so the homepage can stay
  * statically optimized (nonce CSP would force dynamic rendering).
  *
- * Served as Content-Security-Policy-Report-Only until violations are clean in test.
+ * Enforced via Content-Security-Policy. Booking today is an external Altegio
+ * link (no widget); Maps iframe hosts are allowlisted in frame-src.
  * HSTS is set by nginx (snippets/hsts-headers.conf), not Next.js.
  */
 export function buildContentSecurityPolicy(isDev: boolean): string {
