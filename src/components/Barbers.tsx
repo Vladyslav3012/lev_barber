@@ -1,0 +1,122 @@
+import Image from "next/image";
+import { barbers } from "@/data/barbers";
+import { site } from "@/data/site";
+import { versionedPublicSrc } from "@/lib/public-image";
+import { Reveal } from "./Reveal";
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className="h-[18px] w-[18px]">
+      <rect
+        x="3.5"
+        y="3.5"
+        width="17"
+        height="17"
+        rx="4.5"
+        stroke="currentColor"
+        strokeWidth="1.25"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="4.25"
+        stroke="currentColor"
+        strokeWidth="1.25"
+      />
+      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+const cardSize =
+  "w-[min(100%,calc(min(62vh,560px)*0.75))] shrink-0";
+
+export function Barbers() {
+  return (
+    <section id="barbers" className="px-5 pt-12 pb-24 md:px-10 md:pt-16 md:pb-32 lg:px-16">
+      <Reveal>
+        <p className="mb-6 text-[11px] tracking-[0.32em] text-sand uppercase">
+          Барбери
+        </p>
+      </Reveal>
+      <Reveal>
+        <h2 className="mb-12 max-w-xl font-serif text-3xl font-normal text-mist italic md:mb-16 md:text-4xl">
+          Команда, яка створює {site.name}.
+        </h2>
+      </Reveal>
+
+      <div className="flex flex-col items-center gap-10 md:flex-row md:flex-wrap md:items-start md:justify-center md:gap-8 lg:gap-10">
+        {barbers.map((barber, index) => {
+          const src = versionedPublicSrc(barber.image) ?? barber.image;
+          return (
+            <Reveal key={barber.name} className={cardSize}>
+              <article>
+                <div className="group relative aspect-[3/4] overflow-hidden bg-[#1c1c1c]">
+                  <Image
+                    src={src}
+                    alt={`${barber.name}, ${barber.role} барбершопу ${site.name} у Львові`}
+                    fill
+                    sizes="(min-width: 768px) 420px, 100vw"
+                    priority={index === 0}
+                    className="object-cover object-[center_62%] brightness-[0.97] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-black/14"
+                  />
+                </div>
+                <div className="mt-5 flex items-center gap-1.5">
+                  <h3 className="font-serif text-3xl text-mist italic md:text-4xl">
+                    {barber.name}
+                  </h3>
+                  <a
+                    href={barber.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-9 w-9 translate-y-[3px] items-center justify-center text-mist/75 transition-colors duration-300 hover:text-sand"
+                    aria-label={`Instagram ${barber.name}`}
+                  >
+                    <InstagramIcon />
+                  </a>
+                </div>
+                <p className="mt-2 text-[11px] tracking-[0.22em] text-sand uppercase">
+                  {barber.role}
+                </p>
+              </article>
+            </Reveal>
+          );
+        })}
+
+        <Reveal className={cardSize}>
+          <a
+            href="#career"
+            className="group relative flex aspect-[3/4] flex-col justify-between overflow-hidden border border-sand/35 px-6 py-7 transition-colors duration-300 hover:border-sand md:px-8 md:py-8"
+          >
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-80"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(196,181,160,0.06) 14px, rgba(196,181,160,0.06) 15px)",
+              }}
+            />
+            <span className="relative text-3xl leading-none text-sand/80">
+              +
+            </span>
+            <div className="relative">
+              <p className="font-serif text-[1.7rem] leading-tight text-mist italic md:text-4xl">
+                Це можеш бути ти
+              </p>
+              <p className="mt-4 max-w-[16rem] text-[13px] leading-6 text-mist/70">
+                Ми шукаємо барбера, який хоче рости разом із {site.name}.
+              </p>
+            </div>
+            <span className="relative text-[12px] tracking-[0.22em] text-mist/80 uppercase transition-colors duration-300 group-hover:text-sand">
+              Стати барбером {site.name} →
+            </span>
+          </a>
+        </Reveal>
+      </div>
+    </section>
+  );
+}

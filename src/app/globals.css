@@ -1,0 +1,370 @@
+@import "tailwindcss";
+
+:root {
+  --background: #171717;
+  --foreground: #cfc9c2;
+  --mist: #cfc9c2;
+  --stone: #8a8580;
+  --sand: #c4b5a0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-charcoal: #171717;
+  --color-mist: #cfc9c2;
+  --color-stone: #8a8580;
+  --color-sand: #c4b5a0;
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-cormorant);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  background: var(--background);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-manrope), sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--sand) 35%, transparent);
+  color: #f4efe8;
+}
+
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Dark / muted Google Maps embed to sit against charcoal sections */
+.map-embed {
+  border: 0;
+  filter: grayscale(1) invert(0.9) contrast(0.85) brightness(0.85);
+}
+
+/*
+  Mobile/ngrok: window.scrollY often stays 0, so JS scroll listeners are useless.
+  CSS scroll-timeline still sees root scroll — same path that hides «Далі».
+*/
+.site-header-surface {
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--background) 97%, transparent);
+  border-bottom: 1px solid transparent;
+  opacity: 0;
+  transition:
+    opacity 0.45s ease,
+    border-color 0.45s ease;
+}
+
+.site-header-surface.is-solid,
+.site-header[data-open="true"] .site-header-surface {
+  opacity: 1;
+  border-bottom-color: rgb(255 255 255 / 0.05);
+}
+
+@supports (animation-timeline: scroll()) {
+  .site-header-surface:not(.is-solid) {
+    animation: header-surface-show linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 2.5rem;
+    transition: none;
+  }
+
+  .site-header[data-open="true"] .site-header-surface {
+    animation: none;
+  }
+
+  .hero-scroll-wrap {
+    animation: hero-scroll-cue-hide linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 2.5rem;
+  }
+}
+
+@keyframes header-surface-show {
+  from {
+    opacity: 0;
+    border-bottom-color: transparent;
+  }
+  to {
+    opacity: 1;
+    border-bottom-color: rgb(255 255 255 / 0.05);
+  }
+}
+
+@keyframes hero-scroll-cue-hide {
+  from {
+    opacity: 1;
+    visibility: visible;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Visible by default (SSR / no-JS). Animation only after JS sets data-enhance. */
+.reveal[data-enhance] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 1.05s cubic-bezier(0.33, 0, 0.2, 1),
+    transform 1.05s cubic-bezier(0.33, 0, 0.2, 1);
+}
+
+.reveal[data-enhance].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 767px) {
+  .reveal[data-enhance] {
+    transform: translateY(8px);
+    transition:
+      opacity 1.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+      transform 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+}
+
+.hero-rise {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-rise-1 {
+  animation-delay: 0.12s;
+}
+.hero-rise-2 {
+  animation-delay: 0.28s;
+}
+.hero-rise-3 {
+  animation-delay: 0.44s;
+}
+.hero-rise-4 {
+  animation-delay: 0.6s;
+}
+
+.hero-scroll-wrap {
+  isolation: isolate;
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s ease;
+}
+
+.hero-scroll-wrap.is-hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Kill entrance / nudge animations so compositing can't keep the cue painted. */
+.hero-scroll-wrap.is-hidden .hero-scroll,
+.hero-scroll-wrap.is-hidden .hero-scroll-arrow {
+  animation: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: none !important;
+}
+
+.hero-scroll {
+  opacity: 0;
+  animation: rise 1.05s cubic-bezier(0.22, 1, 0.36, 1) 1.05s forwards;
+}
+
+.hero-scroll-arrow {
+  display: block;
+  font-size: 0.7rem;
+  line-height: 1;
+  letter-spacing: 0;
+  animation: scroll-nudge 2.1s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/*
+  Mobile WebKit: a child with its own transform animation can stay painted
+  even when the parent fades to opacity 0. No transform nudge on touch.
+*/
+@media (pointer: coarse) {
+  .hero-scroll-arrow {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
+.hero-tagline {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sand) 90%, transparent);
+}
+
+@media (min-width: 768px) {
+  .hero-tagline {
+    font-size: 1rem;
+  }
+}
+
+.hero-cta,
+.nav-book {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mist) 55%, transparent);
+  color: var(--mist);
+  text-transform: uppercase;
+  transition:
+    border-color 0.45s ease,
+    color 0.45s ease,
+    transform 0.2s ease;
+}
+
+.hero-cta {
+  gap: 0.7rem;
+  padding: 0.95rem 1.35rem;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+}
+
+.hero-cta-arrow {
+  position: relative;
+  width: 0.7rem;
+  height: 0.7rem;
+  flex-shrink: 0;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hero-cta:focus-visible .hero-cta-arrow,
+.hero-cta.is-pressed .hero-cta-arrow {
+  transform: translate(2px, -2px);
+}
+
+.nav-book {
+  padding: 0.55rem 0.85rem;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  border-color: color-mix(in srgb, var(--sand) 55%, transparent);
+  color: var(--sand);
+}
+
+.hero-cta-fill,
+.nav-book-fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--mist);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-book-fill {
+  background: var(--sand);
+}
+
+.hero-cta:focus-visible,
+.hero-cta.is-pressed,
+.nav-book:focus-visible,
+.nav-book.is-pressed {
+  color: var(--background);
+}
+
+.hero-cta:focus-visible,
+.hero-cta.is-pressed {
+  border-color: var(--mist);
+}
+
+.nav-book:focus-visible,
+.nav-book.is-pressed {
+  border-color: var(--sand);
+}
+
+.hero-cta:focus-visible .hero-cta-fill,
+.hero-cta.is-pressed .hero-cta-fill,
+.nav-book:focus-visible .nav-book-fill,
+.nav-book.is-pressed .nav-book-fill {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-cta:hover {
+    border-color: var(--mist);
+    color: var(--background);
+  }
+
+  .nav-book:hover {
+    border-color: var(--sand);
+    color: var(--background);
+  }
+
+  .hero-cta:hover .hero-cta-fill,
+  .nav-book:hover .nav-book-fill {
+    transform: scaleX(1);
+  }
+
+  .hero-cta:hover .hero-cta-arrow {
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes scroll-nudge {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal,
+  .reveal[data-enhance],
+  .hero-rise,
+  .hero-scroll {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+
+  .hero-scroll-wrap:not(.is-hidden) {
+    opacity: 1;
+    animation: none;
+    transition: none;
+  }
+
+  .hero-scroll-arrow {
+    animation: none;
+    opacity: 0.7;
+    transform: none;
+  }
+
+  .hero-cta-fill,
+  .nav-book-fill {
+    transition: none;
+  }
+}
