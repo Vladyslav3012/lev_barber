@@ -1,0 +1,74 @@
+# Production: Next.js (standalone) + nginx + Let's Encrypt.
+# Usage: docker compose -f docker-compose.prod.yml up --build -d
+#
+# Copy .env.production.example → .env and fill real values before deploy.
+# First TLS: ./scripts/init-letsencrypt.sh
+
+services:
+  frontend:
+    build:
+      context: .
+      target: prod
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://${DOMAIN:-localhost}}
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://${DOMAIN:-localhost}}
+      LOG_FILE: frontend.log
+      LOG_DIR: /var/log/levbarber
+    volumes:
+      - ./log:/var/log/levbarber
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('http').get('http://127.0.0.1:3000/', (r) => { r.resume(); process.exit(r.statusCode < 500 ? 0 : 1); }).on('error', () => process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  nginx:
+    build:
+      context: ./nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+    volumes:
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+      - nginx_reload:/var/run/nginx-reload
+      - ./log:/var/log/levbarber
+    depends_on:
+      frontend:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  certbot:
+    image: certbot/certbot:latest
+    profiles:
+      - certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+      - nginx_reload:/var/run/nginx-reload
+
+volumes:
+  certbot_conf:
+  certbot_www:
+  nginx_reload:

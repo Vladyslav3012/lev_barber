@@ -215,26 +215,22 @@ body {
   }
 }
 
-.hero-cta,
-.nav-book {
+.hero-cta {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 0.7rem;
   overflow: hidden;
+  padding: 0.95rem 1.35rem;
   border: 1px solid color-mix(in srgb, var(--mist) 55%, transparent);
+  font-size: 12px;
+  letter-spacing: 0.2em;
   color: var(--mist);
   text-transform: uppercase;
   transition:
     border-color 0.45s ease,
     color 0.45s ease,
     transform 0.2s ease;
-}
-
-.hero-cta {
-  gap: 0.7rem;
-  padding: 0.95rem 1.35rem;
-  font-size: 12px;
-  letter-spacing: 0.2em;
 }
 
 .hero-cta-arrow {
@@ -250,16 +246,7 @@ body {
   transform: translate(2px, -2px);
 }
 
-.nav-book {
-  padding: 0.55rem 0.85rem;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  border-color: color-mix(in srgb, var(--sand) 55%, transparent);
-  color: var(--sand);
-}
-
-.hero-cta-fill,
-.nav-book-fill {
+.hero-cta-fill {
   position: absolute;
   inset: 0;
   transform: scaleX(0);
@@ -268,31 +255,14 @@ body {
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.nav-book-fill {
-  background: var(--sand);
-}
-
-.hero-cta:focus-visible,
-.hero-cta.is-pressed,
-.nav-book:focus-visible,
-.nav-book.is-pressed {
-  color: var(--background);
-}
-
 .hero-cta:focus-visible,
 .hero-cta.is-pressed {
   border-color: var(--mist);
-}
-
-.nav-book:focus-visible,
-.nav-book.is-pressed {
-  border-color: var(--sand);
+  color: var(--background);
 }
 
 .hero-cta:focus-visible .hero-cta-fill,
-.hero-cta.is-pressed .hero-cta-fill,
-.nav-book:focus-visible .nav-book-fill,
-.nav-book.is-pressed .nav-book-fill {
+.hero-cta.is-pressed .hero-cta-fill {
   transform: scaleX(1);
 }
 
@@ -302,13 +272,7 @@ body {
     color: var(--background);
   }
 
-  .nav-book:hover {
-    border-color: var(--sand);
-    color: var(--background);
-  }
-
-  .hero-cta:hover .hero-cta-fill,
-  .nav-book:hover .nav-book-fill {
+  .hero-cta:hover .hero-cta-fill {
     transform: scaleX(1);
   }
 
@@ -363,8 +327,7 @@ body {
     transform: none;
   }
 
-  .hero-cta-fill,
-  .nav-book-fill {
+  .hero-cta-fill {
     transition: none;
   }
 }

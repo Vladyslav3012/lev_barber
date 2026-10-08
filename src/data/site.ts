@@ -12,7 +12,6 @@ export const site = {
     region: "Львівська область",
     postalCode: "79000",
     country: "UA",
-    full: "вул. Івана Франка, 100, Львів, 79000",
   },
   geo: {
     latitude: 49.828373,
@@ -45,16 +44,14 @@ export const site = {
   },
   tiktok: {
     handle: "@lev_barberhop",
-    href: "https://www.tiktok.com/@lev_barberhop?_r=1",
+    href: "https://www.tiktok.com/@lev_barberhop",
     label: "TikTok LEV BARBER",
   },
   booking: {
     href: "https://n1381485.alteg.io/company/1316669/personal/menu?o=",
-    label: "Записатися",
     cta: "Записатися онлайн",
   },
   maps: {
-    query: "вулиця Івана Франка, 100, Львів, 79000",
     embed:
       "https://maps.google.com/maps?q=%D0%B2%D1%83%D0%BB%D0%B8%D1%86%D1%8F%20%D0%86%D0%B2%D0%B0%D0%BD%D0%B0%20%D0%A4%D1%80%D0%B0%D0%BD%D0%BA%D0%B0%2C%20100%2C%20%D0%9B%D1%8C%D0%B2%D1%96%D0%B2&z=16&hl=uk&gl=ua&output=embed",
     directions:

@@ -160,10 +160,7 @@ export function Career() {
             className={`flex items-baseline gap-1.5 ${fieldBorder(Boolean(fieldErrors.contact))}`}
           >
             {showPhonePrefix ? (
-              <span
-                className="shrink-0 py-2.5 pl-0 text-mist/50 select-none"
-                aria-hidden
-              >
+              <span className="shrink-0 py-2.5 pl-0 text-mist/50 select-none">
                 {PHONE_PREFIX}
               </span>
             ) : null}
@@ -175,6 +172,11 @@ export function Career() {
               maxLength={CAREER_LIMITS.contact.max}
               placeholder={
                 showPhonePrefix ? "068 000 00 00 або @name" : "@name"
+              }
+              aria-label={
+                showPhonePrefix
+                  ? `Телефон, код країни ${PHONE_PREFIX}`
+                  : "Телефон або Instagram"
               }
               aria-invalid={Boolean(fieldErrors.contact)}
               aria-describedby={
@@ -243,10 +245,14 @@ export function Career() {
         </button>
 
         {status === "ok" ? (
-          <p className="text-sm text-sand">Дякуємо. Напишемо тобі.</p>
+          <p role="status" className="text-sm text-sand">
+            Дякуємо. Напишемо тобі.
+          </p>
         ) : null}
         {status === "error" ? (
-          <p className="text-sm text-red-300">{error}</p>
+          <p role="alert" className="text-sm text-red-300">
+            {error}
+          </p>
         ) : null}
       </form>
     </section>

@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LEV BARBER
 
-## Getting Started
+Сайт барбершопу у Львові (Next.js). Запис через Alteg; форма «стати барбером» → Telegram.
 
-First, run the development server:
+## Local
 
 ```bash
+cp .env.example .env
+# заповни TELEGRAM_* якщо тестуєш форму
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Відкрий [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Env
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | When | Purpose |
+|----------|------|---------|
+| `NEXT_PUBLIC_SITE_URL` | **required in production** | Canonical / OG / sitemap / Origin checks (`https://…`, без `/` в кінці) |
+| `TELEGRAM_BOT_TOKEN` | career form | Bot API |
+| `TELEGRAM_CHAT_ID` | career form | Chat/group for applications |
+| `DOMAIN` | Docker/nginx | Apex domain (напр. `levbarber.ua`) |
+| `CERTBOT_EMAIL` | first TLS | Let's Encrypt |
 
-## Learn More
+Локально: `.env.example`. На сервері: `.env.production.example` → `.env`.
 
-To learn more about Next.js, take a look at the following resources:
+## Production (Docker + nginx)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Стек як у San San, але без Django/DB: **frontend + nginx + certbot**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cp .env.production.example .env
+# заповни DOMAIN, CERTBOT_EMAIL, NEXT_PUBLIC_SITE_URL, TELEGRAM_*
 
-## Deploy on Vercel
+chmod +x scripts/*.sh docker-entrypoint.sh nginx/docker-entrypoint.sh
+./scripts/init-letsencrypt.sh
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Оновлення:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker compose -f docker-compose.prod.yml up --build -d
+```
+
+Renew TLS (cron раз на тиждень):
+
+```bash
+./scripts/renew-certs.sh
+```
+
+GitHub Actions: lint + typecheck + build на PR; на `main` — SSH deploy (`DEPLOY_SSH_KEY`, `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_PATH`).
+
+## Scripts
+
+- `npm run dev` / `build` / `start` / `lint`
+- `npx tsc --noEmit` — typecheck

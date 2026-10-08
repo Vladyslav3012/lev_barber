@@ -66,6 +66,14 @@ export function Footer() {
               Instagram
             </a>
             <a
+              href={site.tiktok.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors duration-300 hover:text-sand"
+            >
+              TikTok
+            </a>
+            <a
               href={site.maps.listing}
               target="_blank"
               rel="noopener noreferrer"

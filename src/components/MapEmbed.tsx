@@ -1,19 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type MapEmbedProps = {
   src: string;
   title: string;
 };
 
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 /** Mount after hydration so Chrome autofill attrs on the iframe can't mismatch SSR. */
 export function MapEmbed({ src, title }: MapEmbedProps) {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    setReady(true);
-  }, []);
+  const ready = useIsClient();
 
   if (!ready) {
     return (

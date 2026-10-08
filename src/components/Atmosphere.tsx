@@ -75,6 +75,17 @@ export function Atmosphere() {
       </Reveal>
 
       <div className="lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-start lg:gap-16 xl:gap-24">
+        <Reveal className="mb-8 max-w-xl lg:hidden">
+          <h2 className="font-serif text-3xl leading-tight text-mist italic">
+            {site.atmosphere.headline}
+          </h2>
+          <div className="mt-6 space-y-4 text-[15px] leading-7 text-mist/78">
+            {site.atmosphere.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+        </Reveal>
+
         <div className="grid gap-4 md:gap-5">
           <Reveal>
             <Frame

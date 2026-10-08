@@ -9,7 +9,8 @@ import {
 import { getSiteUrl } from "@/lib/site-url";
 
 const WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS = 1;
+/** Successful Telegram sends per IP per window (validation failures do not count). */
+const MAX_REQUESTS = 3;
 const hits = new Map<string, number[]>();
 
 function pruneHits(now: number) {
@@ -25,13 +26,15 @@ function rateLimited(ip: string) {
   if (hits.size > 500) pruneHits(now);
 
   const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
-  if (recent.length >= MAX_REQUESTS) {
-    hits.set(ip, recent);
-    return true;
-  }
+  hits.set(ip, recent);
+  return recent.length >= MAX_REQUESTS;
+}
+
+function recordHit(ip: string) {
+  const now = Date.now();
+  const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
   recent.push(now);
   hits.set(ip, recent);
-  return false;
 }
 
 function asText(value: unknown) {
@@ -43,14 +46,17 @@ function clientIp(request: NextRequest) {
   const vercel = request.headers.get("x-vercel-forwarded-for");
   if (vercel) return vercel.split(",")[0]?.trim() || "unknown";
 
+  // Prefer X-Real-IP when nginx overwrites it with $remote_addr (see nginx templates).
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
-    // Rightmost is usually the trusted proxy hop when the edge appends.
-    const parts = forwarded.split(",").map((part) => part.trim());
-    return parts[parts.length - 1] || "unknown";
+    // Leftmost is the client when the edge overwrites (or is the only hop).
+    return forwarded.split(",")[0]?.trim() || "unknown";
   }
 
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
+  return "unknown";
 }
 
 function configuredSiteOrigin() {
@@ -169,15 +175,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const ip = clientIp(request);
-
-  if (rateLimited(ip)) {
-    return NextResponse.json(
-      { ok: false, error: "Забагато спроб. Спробуй пізніше." },
-      { status: 429 },
-    );
-  }
-
   let body: Record<string, unknown>;
   try {
     body = (await request.json()) as Record<string, unknown>;
@@ -201,6 +198,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { ok: false, error: "Заповни всі поля коректно." },
       { status: 400 },
+    );
+  }
+
+  const ip = clientIp(request);
+  if (rateLimited(ip)) {
+    return NextResponse.json(
+      { ok: false, error: "Забагато спроб. Спробуй пізніше." },
+      { status: 429 },
     );
   }
 
@@ -230,5 +235,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  recordHit(ip);
   return NextResponse.json({ ok: true });
 }

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Slim image for Docker (see Dockerfile → .next/standalone).
+  output: "standalone",
   // ngrok / phone testing: without this, Next blocks /_next/* from the tunnel
   // origin and client components never hydrate (links work, buttons don't).
   allowedDevOrigins: [

@@ -2,31 +2,8 @@ import Image from "next/image";
 import { barbers } from "@/data/barbers";
 import { site } from "@/data/site";
 import { versionedPublicSrc } from "@/lib/public-image";
+import { InstagramIcon } from "./icons";
 import { Reveal } from "./Reveal";
-
-function InstagramIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden className="h-[18px] w-[18px]">
-      <rect
-        x="3.5"
-        y="3.5"
-        width="17"
-        height="17"
-        rx="4.5"
-        stroke="currentColor"
-        strokeWidth="1.25"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="4.25"
-        stroke="currentColor"
-        strokeWidth="1.25"
-      />
-      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" />
-    </svg>
-  );
-}
 
 const cardSize =
   "w-[min(100%,calc(min(62vh,560px)*0.75))] shrink-0";
