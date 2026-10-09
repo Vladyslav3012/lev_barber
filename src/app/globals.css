@@ -107,6 +107,8 @@ body {
 
 @supports (animation-timeline: scroll()) {
   .site-header-surface:not(.is-solid) {
+    /* Border is static; only opacity is animated (composited). */
+    border-bottom-color: rgb(255 255 255 / 0.05);
     animation: header-surface-show linear both;
     animation-timeline: scroll(root);
     animation-range: 0 2.5rem;
@@ -124,25 +126,22 @@ body {
   }
 }
 
+/* Opacity-only so Lighthouse treats these as composited animations. */
 @keyframes header-surface-show {
   from {
     opacity: 0;
-    border-bottom-color: transparent;
   }
   to {
     opacity: 1;
-    border-bottom-color: rgb(255 255 255 / 0.05);
   }
 }
 
 @keyframes hero-scroll-cue-hide {
   from {
     opacity: 1;
-    visibility: visible;
   }
   to {
     opacity: 0;
-    visibility: hidden;
   }
 }
 

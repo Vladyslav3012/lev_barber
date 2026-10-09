@@ -1,12 +1,29 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 import { buildContentSecurityPolicy } from "./src/lib/csp";
 
 const isDev = process.env.NODE_ENV === "development";
 const contentSecurityPolicy = buildContentSecurityPolicy(isDev);
 
+/** Drop Next's modern-browser polyfill pack (~14 KiB Lighthouse "Legacy JavaScript"). */
+const emptyPolyfill = path.join(__dirname, "src/lib/empty-polyfill.js");
+const nextPolyfillModule = require.resolve(
+  "next/dist/build/polyfills/polyfill-module",
+);
+
 const nextConfig: NextConfig = {
   // Slim image for Docker (see Dockerfile → .next/standalone).
   output: "standalone",
+  // `npm run build` uses --webpack so this alias applies (Turbopack still ships the pack).
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      [nextPolyfillModule]: emptyPolyfill,
+      "next/dist/build/polyfills/polyfill-module": emptyPolyfill,
+      "next/dist/build/polyfills/polyfill-module.js": emptyPolyfill,
+    };
+    return config;
+  },
   // ngrok / phone testing: without this, Next blocks /_next/* from the tunnel
   // origin and client components never hydrate (links work, buttons don't).
   ...(isDev
