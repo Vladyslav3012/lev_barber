@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { careerFieldsSchema } from "./career-fields-schema";
 import {
-  careerFieldsSchema,
   contactError,
   escapeTelegramHtml,
   formatCareerTelegramHtml,

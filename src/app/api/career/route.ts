@@ -6,10 +6,8 @@ import {
   isAllowedOrigin,
   readCareerJsonBody,
 } from "@/lib/career-request";
-import {
-  careerFieldsSchema,
-  formatCareerTelegramHtml,
-} from "@/lib/career-validation";
+import { careerFieldsSchema } from "@/lib/career-fields-schema";
+import { formatCareerTelegramHtml } from "@/lib/career-validation";
 
 const WINDOW_MS = 60 * 1000;
 /** Successful Telegram sends per IP per window (validation failures do not count). */

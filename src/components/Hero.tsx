@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/data/site";
+import { HERO_POSTER, HERO_VIDEO } from "@/lib/hero-assets";
 import { latchTapFill } from "@/lib/latch-tap";
-
-const HERO_POSTER = "/hero-poster.v1.jpg";
-const HERO_VIDEO = "/hero.v1.mp4";
 
 type NetworkConnection = {
   saveData?: boolean;
@@ -37,11 +35,6 @@ function shouldPlayHeroVideo() {
   const type = conn?.effectiveType;
   if (type === "slow-2g" || type === "2g") return false;
   return true;
-}
-
-/** True for phones/tablets — defer video attach so poster paints first. */
-function prefersDeferredHeroVideo() {
-  return window.matchMedia("(pointer: coarse)").matches;
 }
 
 function CtaArrow() {
@@ -128,17 +121,12 @@ export function Hero() {
         return;
       }
 
-      // Desktop: attach immediately after hydration.
-      // Coarse pointer: wait a tick so poster/LCP isn't fighting the 2.6MB fetch.
-      if (prefersDeferredHeroVideo()) {
-        if ("requestIdleCallback" in window) {
-          idleId = window.requestIdleCallback(enable, { timeout: 1200 });
-        } else {
-          timeoutId = setTimeout(enable, 400);
-        }
-        return;
+      // Defer <source> everywhere so the poster wins LCP (lab + real devices).
+      if ("requestIdleCallback" in window) {
+        idleId = window.requestIdleCallback(enable, { timeout: 1200 });
+      } else {
+        timeoutId = setTimeout(enable, 400);
       }
-      enable();
     };
 
     sync();

@@ -1,11 +1,10 @@
 /**
  * CSP for the marketing site: Next.js self-hosted fonts/scripts, local media,
- * Google Maps embed, and Altegio widget hosts (script/frame) for when booking
- * is embedded. Uses 'unsafe-inline' for styles/scripts so the homepage can stay
- * statically optimized (nonce CSP would force dynamic rendering).
+ * and Google Maps embed. Uses 'unsafe-inline' for styles/scripts so the
+ * homepage can stay statically optimized (nonce CSP would force dynamic
+ * rendering). Booking is an external Altegio link (no widget script); Altegio
+ * remains in frame-src if a widget is embedded later.
  *
- * Enforced via Content-Security-Policy. Booking today is an external Altegio
- * link (no widget); Maps iframe hosts are allowlisted in frame-src.
  * HSTS is set by nginx (snippets/hsts-headers.conf), not Next.js.
  */
 export function buildContentSecurityPolicy(isDev: boolean): string {
@@ -15,7 +14,6 @@ export function buildContentSecurityPolicy(isDev: boolean): string {
     "'self'",
     "'unsafe-inline'",
     ...(isDev ? ["'unsafe-eval'"] : []),
-    altegio,
   ].join(" ");
 
   const directives = [

@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 const UA_PHONE = /^\+380\d{9}$/;
 const INSTAGRAM = /^[a-zA-Z0-9._]{2,30}$/;
 
@@ -10,11 +8,6 @@ export const CAREER_LIMITS = {
   contact: { max: 120 },
   message: { min: 10, max: 2000 },
 } as const;
-
-const trimmedString = z.preprocess(
-  (value) => (typeof value === "string" ? value.trim() : ""),
-  z.string(),
-);
 
 function compactPhone(value: string) {
   return value.replace(/[\s()-]/g, "");
@@ -159,26 +152,3 @@ export function formatCareerTelegramHtml(fields: {
     escapeTelegramHtml(fields.message),
   ].join("\n");
 }
-
-/**
- * Server-side career payload. Keeps the same Ukrainian field errors as the form.
- * Honeypot (`website`) is checked separately before this schema runs.
- */
-export const careerFieldsSchema = z.object({
-  name: trimmedString.superRefine((value, ctx) => {
-    const error = nameError(value);
-    if (error) ctx.addIssue({ code: "custom", message: error });
-  }),
-  contact: trimmedString
-    .transform((value) => normalizeContact(value))
-    .superRefine((value, ctx) => {
-      const error = contactError(value);
-      if (error) ctx.addIssue({ code: "custom", message: error });
-    }),
-  message: trimmedString.superRefine((value, ctx) => {
-    const error = messageError(value);
-    if (error) ctx.addIssue({ code: "custom", message: error });
-  }),
-});
-
-export type CareerFields = z.infer<typeof careerFieldsSchema>;

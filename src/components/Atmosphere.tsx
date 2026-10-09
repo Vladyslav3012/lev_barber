@@ -5,17 +5,17 @@ import { Reveal } from "./Reveal";
 
 const FRAMES = [
   {
-    file: "01.jpg",
+    file: "01.webp",
     className: "aspect-[16/9] w-full",
     alt: "Атмосфера барбершопу Lev Barber",
   },
   {
-    file: "02.jpg",
+    file: "02.webp",
     className: "aspect-[4/5] w-full",
     alt: "Інтер’єр барбершопу Lev Barber",
   },
   {
-    file: "03.jpg",
+    file: "03.webp",
     className: "aspect-[4/5] w-full",
     alt: "Деталі простору Lev Barber",
   },

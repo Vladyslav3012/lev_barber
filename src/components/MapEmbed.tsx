@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type MapEmbedProps = {
   src: string;
@@ -18,6 +18,26 @@ function useIsClient() {
 /** Mount after hydration so Chrome autofill attrs on the iframe can't mismatch SSR. */
 export function MapEmbed({ src, title }: MapEmbedProps) {
   const ready = useIsClient();
+  const shellRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    if (!ready) return;
+    const el = shellRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ready]);
 
   if (!ready) {
     return (
@@ -29,12 +49,19 @@ export function MapEmbed({ src, title }: MapEmbedProps) {
   }
 
   return (
-    <iframe
-      title={title}
-      src={src}
+    <div
+      ref={shellRef}
       className="map-embed h-64 w-full lg:h-full lg:min-h-[420px]"
-      loading="lazy"
-      referrerPolicy="no-referrer-when-downgrade"
-    />
+    >
+      {inView ? (
+        <iframe
+          title={title}
+          src={src}
+          className="h-full w-full"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      ) : null}
+    </div>
   );
 }

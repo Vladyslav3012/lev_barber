@@ -9,7 +9,7 @@ export const barbers: Barber[] = [
   {
     name: "Богдан",
     role: "Founder / Ambassador",
-    image: "/barbers/bogdan.jpg",
+    image: "/barbers/bogdan.webp",
     instagram: "https://www.instagram.com/bogdan_barber_lviv",
   },
 ];

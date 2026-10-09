@@ -23,7 +23,7 @@ export function Barbers() {
       </Reveal>
 
       <div className="flex flex-col items-center gap-10 md:flex-row md:flex-wrap md:items-stretch md:justify-center md:gap-8 lg:gap-10">
-        {barbers.map((barber, index) => {
+        {barbers.map((barber) => {
           const src = versionedPublicSrc(barber.image) ?? barber.image;
           return (
             <Reveal key={barber.name} className={cardSize}>
@@ -34,7 +34,6 @@ export function Barbers() {
                     alt={`${barber.name}, ${barber.role} барбершопу ${site.name} у Львові`}
                     fill
                     sizes="(min-width: 768px) 420px, 100vw"
-                    priority={index === 0}
                     className="object-cover object-[center_62%] brightness-[0.97] transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
                   <div

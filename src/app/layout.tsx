@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { preload } from "react-dom";
 import { site } from "@/data/site";
+import { HERO_POSTER } from "@/lib/hero-assets";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -73,6 +75,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  preload(HERO_POSTER, { as: "image", fetchPriority: "high" });
+
   return (
     <html
       lang="uk"

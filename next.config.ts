@@ -61,7 +61,44 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/hero-poster.v1.jpg",
+        source: "/hero-poster.v2.webp",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Paths are cache-busted via ?v=<mtime> (versionedPublicSrc).
+        source: "/atmosphere/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/barbers/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/og.png",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/favicon.svg",
         headers: [
           {
             key: "Cache-Control",
