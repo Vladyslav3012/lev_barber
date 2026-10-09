@@ -11,7 +11,7 @@ import {
 
 const prodSite: CareerOriginContext = {
   isProd: true,
-  siteOrigin: "https://levbarber.ua",
+  siteOrigin: "https://levbarber.com",
   extraOrigins: [],
   publicOrigin: null,
 };
@@ -23,7 +23,7 @@ afterEach(() => {
 
 describe("isAllowedOrigin", () => {
   it("allows matching Origin in production", () => {
-    const headers = new Headers({ Origin: "https://levbarber.ua" });
+    const headers = new Headers({ Origin: "https://levbarber.com" });
     expect(isAllowedOrigin(headers, prodSite)).toBe(true);
   });
 
@@ -38,7 +38,7 @@ describe("isAllowedOrigin", () => {
 
   it("allows matching Referer when Origin is absent", () => {
     const headers = new Headers({
-      Referer: "https://levbarber.ua/career",
+      Referer: "https://levbarber.com/career",
     });
     expect(isAllowedOrigin(headers, prodSite)).toBe(true);
   });

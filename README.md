@@ -22,7 +22,7 @@ npm run dev
 | `TRUST_PROXY` | compose = `1` | Довіряти `X-Real-IP` / `X-Forwarded-For` від nginx для rate limit. Не вмикати на голому `next start` |
 | `TELEGRAM_BOT_TOKEN` | **required in prod** | Bot API (compose `:?` + Next instrumentation fail-fast; local API → 503) |
 | `TELEGRAM_CHAT_ID` | **required in prod** | Chat/group for applications |
-| `DOMAIN` | Docker/nginx | Apex domain (напр. `levbarber.ua`) |
+| `DOMAIN` | Docker/nginx | Apex domain (напр. `levbarber.com`) |
 | `CERTBOT_EMAIL` | first TLS | Let's Encrypt |
 | `FRONTEND_IMAGE` / `NGINX_IMAGE` | production | GHCR `image@sha256:…` (CI пише в `.env.release`) |
 
@@ -37,30 +37,18 @@ cp .env.production.example .env
 # заповни DOMAIN, CERTBOT_EMAIL, NEXT_PUBLIC_SITE_URL, TELEGRAM_*
 
 chmod +x scripts/*.sh nginx/docker-entrypoint.sh
-```
 
-Перший TLS (після того як образи вже є — з CI або локальної збірки):
-
-```bash
-./scripts/init-letsencrypt.sh
-```
-
-Скрипт піднімає стек, чекає HTTP від **nginx** (не healthcheck Next), потім робить ACME webroot. Nginx стартує з `depends_on: service_started`, тож `/.well-known/acme-challenge` доступний навіть якщо frontend ще не healthy.
-
-Локальний / bootstrap build (не CI-шлях):
-
-```bash
+# збірка образів на сервері (перший раз; далі — CI/GHCR)
 docker compose -f docker-compose.prod.yml -f docker-compose.prod.build.yml up --build -d
-```
 
-Renew TLS — один раз на сервері після bootstrap (ставись weekly cron):
-
-```bash
+# DNS уже має вказувати сюди — інакше Let's Encrypt впаде
+./scripts/init-letsencrypt.sh
 ./scripts/install-cert-renewal.sh
-# або вручну: ./scripts/renew-certs.sh
 ```
 
-CI синхронізує `renew-certs.sh` / `init-letsencrypt.sh` / `install-cert-renewal.sh` на кожен деплой. Cron треба встановити один раз (`install-cert-renewal.sh`).
+`init-letsencrypt.sh` піднімає стек, чекає HTTP від **nginx**, потім ACME webroot для `DOMAIN` + `www`. Nginx стартує з `depends_on: service_started`, тож challenge працює навіть якщо Next ще не healthy.
+
+Перевірка: відкрий `https://levbarber.com/`.
 
 ### CI/CD (GHCR)
 
@@ -129,6 +117,7 @@ export GHCR_PULL_TOKEN=…
 
 - `npm run dev` / `build` / `start` / `lint` / `test`
 - `npx tsc --noEmit` — typecheck
+- `scripts/bootstrap-vps.sh` — one-time host prep (swap, Docker, ufw)
 - `scripts/deploy-release.sh` — pull by digest, health wait, public HTTPS smoke, `.release-state`, auto-rollback, `docker logout`
 - `scripts/init-letsencrypt.sh` — first TLS + HTTPS smoke
 - `scripts/renew-certs.sh` — certbot renew + nginx reload hook

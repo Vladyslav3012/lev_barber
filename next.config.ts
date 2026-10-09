@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     : {}),
   poweredByHeader: false,
   images: {
+    // Pre-sized files in /public — no Sharp in the image. next/image still
+    // handles layout + lazy loading.
+    unoptimized: true,
     // Cache-bust via ?v=<mtime> (see versionedPublicSrc); long TTL is safe.
     minimumCacheTTL: 86400, // 1 day
     localPatterns: [
