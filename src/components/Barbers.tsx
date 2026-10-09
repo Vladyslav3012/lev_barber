@@ -6,7 +6,7 @@ import { InstagramIcon } from "./icons";
 import { Reveal } from "./Reveal";
 
 const cardSize =
-  "w-[min(100%,calc(min(62vh,560px)*0.75))] shrink-0";
+  "flex w-[min(100%,calc(min(62vh,560px)*0.8))] shrink-0 flex-col";
 
 export function Barbers() {
   return (
@@ -22,13 +22,13 @@ export function Barbers() {
         </h2>
       </Reveal>
 
-      <div className="flex flex-col items-center gap-10 md:flex-row md:flex-wrap md:items-start md:justify-center md:gap-8 lg:gap-10">
+      <div className="flex flex-col items-center gap-10 md:flex-row md:flex-wrap md:items-stretch md:justify-center md:gap-8 lg:gap-10">
         {barbers.map((barber, index) => {
           const src = versionedPublicSrc(barber.image) ?? barber.image;
           return (
             <Reveal key={barber.name} className={cardSize}>
-              <article>
-                <div className="group relative aspect-[3/4] overflow-hidden bg-[#1c1c1c]">
+              <article className="flex h-full flex-col">
+                <div className="group relative aspect-[4/5] overflow-hidden bg-[#1c1c1c]">
                   <Image
                     src={src}
                     alt={`${barber.name}, ${barber.role} барбершопу ${site.name} у Львові`}
@@ -64,23 +64,26 @@ export function Barbers() {
           );
         })}
 
-        <Reveal className={cardSize}>
+        <Reveal className={`${cardSize} md:self-stretch`}>
           <a
             href="#career"
-            className="group relative flex aspect-[3/4] flex-col justify-between overflow-hidden border border-sand/35 px-6 py-7 transition-colors duration-300 hover:border-sand md:px-8 md:py-8"
+            className="group relative flex aspect-[4/5] h-full flex-col justify-between overflow-hidden border border-sand/35 px-6 py-7 text-center transition-[border-color,background-color] duration-500 hover:border-sand/70 hover:bg-sand/[0.03] md:aspect-auto md:px-8 md:py-8"
           >
             <div
               aria-hidden
-              className="career-card-hatch pointer-events-none absolute inset-0 opacity-80"
+              className="career-card-hatch pointer-events-none absolute inset-0 opacity-80 transition-opacity duration-500 group-hover:opacity-100"
             />
-            <span className="relative text-3xl leading-none text-sand/80">
+            <span
+              aria-hidden
+              className="relative mx-auto text-3xl leading-none text-sand/80 transition-transform duration-500 ease-out group-hover:scale-125 group-hover:rotate-90"
+            >
               +
             </span>
-            <div className="relative">
+            <div className="relative flex flex-1 flex-col items-center justify-center px-1">
               <p className="font-serif text-[1.7rem] leading-tight text-mist italic md:text-4xl">
                 Це можеш бути ти
               </p>
-              <p className="mt-4 max-w-[16rem] text-[13px] leading-6 text-mist/70">
+              <p className="mx-auto mt-4 max-w-[16rem] text-[13px] leading-6 text-mist/70">
                 Ми шукаємо барбера, який хоче рости разом із {site.name}.
               </p>
             </div>
