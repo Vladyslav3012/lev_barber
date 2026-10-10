@@ -75,18 +75,18 @@ export function Atmosphere() {
       </Reveal>
 
       <div className="lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-start lg:gap-16 xl:gap-24">
-        <Reveal className="mb-8 max-w-xl lg:hidden">
-          <h2 className="font-serif text-3xl leading-tight text-mist italic">
+        <div className="mb-8 max-w-xl lg:order-2 lg:mb-0 lg:sticky lg:top-28 lg:pt-1">
+          <h2 className="font-serif text-3xl leading-tight text-mist italic xl:text-[2.5rem]">
             {site.atmosphere.headline}
           </h2>
-          <div className="mt-6 space-y-4 text-[15px] leading-7 text-mist/78">
+          <div className="mt-6 space-y-4 text-[15px] leading-7 text-mist/78 lg:mt-8 lg:space-y-5 xl:text-base">
             {site.atmosphere.paragraphs.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
-        </Reveal>
+        </div>
 
-        <div className="grid gap-4 md:gap-5">
+        <div className="grid gap-4 md:gap-5 lg:order-1">
           <Reveal>
             <Frame
               className={frames[0].className}
@@ -109,17 +109,6 @@ export function Atmosphere() {
                 alt={frames[2].alt}
               />
             </Reveal>
-          </div>
-        </div>
-
-        <div className="hidden lg:sticky lg:top-28 lg:block lg:pt-1">
-          <h2 className="font-serif text-3xl leading-tight text-mist italic xl:text-[2.5rem]">
-            {site.atmosphere.headline}
-          </h2>
-          <div className="mt-8 space-y-5 text-[15px] leading-7 text-mist/78 xl:text-base">
-            {site.atmosphere.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
           </div>
         </div>
       </div>
