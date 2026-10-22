@@ -39,7 +39,15 @@ export function Career() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [contactValue, setContactValue] = useState("");
   const sendingRef = useRef(false);
-  const showPhonePrefix = looksLikePhoneInput(contactValue);
+  const isPhoneInput = looksLikePhoneInput(contactValue);
+  const compactContact = contactValue.trim().replace(/[\s()-]/g, "");
+  const phonePrefix = !isPhoneInput
+    ? ""
+    : compactContact.startsWith("+")
+      ? ""
+      : compactContact.startsWith("3")
+        ? "+"
+        : PHONE_PREFIX;
 
   function clearField(name: FieldName) {
     setFieldErrors((current) => {
@@ -168,29 +176,31 @@ export function Career() {
         </label>
         <label className="grid gap-1.5">
           <span className="text-[11px] tracking-[0.2em] text-sand uppercase">
-            Телефон або Instagram
+            Телефон або Telegram
           </span>
           <div
             className={`flex items-baseline gap-1.5 ${contactShellBorder(Boolean(fieldErrors.contact))}`}
           >
-            {showPhonePrefix ? (
+            {phonePrefix ? (
               <span className="shrink-0 py-2.5 pl-0 text-mist/50 select-none">
-                {PHONE_PREFIX}
+                {phonePrefix}
               </span>
             ) : null}
             <input
               name="contact"
               value={contactValue}
-              inputMode={showPhonePrefix ? "tel" : "text"}
-              autoComplete={showPhonePrefix ? "tel-national" : "username"}
+              inputMode={isPhoneInput ? "tel" : "text"}
+              autoComplete={isPhoneInput ? "tel-national" : "username"}
               maxLength={CAREER_LIMITS.contact.max}
               placeholder={
-                showPhonePrefix ? "068 000 00 00 або @name" : "@name"
+                isPhoneInput ? "068 000 00 00 або @username" : "@username"
               }
               aria-label={
-                showPhonePrefix
+                phonePrefix === PHONE_PREFIX
                   ? `Телефон, код країни ${PHONE_PREFIX}`
-                  : "Телефон або Instagram"
+                  : isPhoneInput
+                    ? "Телефон у форматі +380"
+                    : "Телефон або Telegram"
               }
               aria-invalid={Boolean(fieldErrors.contact)}
               aria-describedby={

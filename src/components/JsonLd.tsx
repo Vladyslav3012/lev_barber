@@ -15,7 +15,7 @@ export function JsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "HairSalon",
-    name: site.name,
+    name: "Барбершоп Lev Barber",
     description: site.description,
     url: origin,
     image: `${origin}/og.png`,

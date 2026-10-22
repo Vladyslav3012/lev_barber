@@ -1,5 +1,5 @@
 const UA_PHONE = /^\+380\d{9}$/;
-const INSTAGRAM = /^[a-zA-Z0-9._]{2,30}$/;
+const TELEGRAM_USERNAME = /^[a-zA-Z0-9_]{5,32}$/;
 
 export const PHONE_PREFIX = "+38";
 
@@ -16,17 +16,17 @@ function compactPhone(value: string) {
 export function looksLikePhoneInput(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return true;
-  if (/[a-zA-Z@_/]/.test(trimmed) || /instagram\.com/i.test(trimmed)) {
+  if (/[a-zA-Z@_/]/.test(trimmed) || /(?:t\.me|telegram\.me)/i.test(trimmed)) {
     return false;
   }
   return /^\+?[\d\s()-]+$/.test(trimmed);
 }
 
-/** Normalize pasted Instagram URLs / @handles to a bare username. */
-export function instagramHandle(value: string) {
+/** Normalize pasted Telegram links / @handles to a bare username. */
+export function telegramHandle(value: string) {
   let handle = value.trim();
 
-  handle = handle.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "");
+  handle = handle.replace(/^https?:\/\/(www\.)?(t\.me|telegram\.me)\//i, "");
   handle = handle.replace(/^@/, "");
   // Drop query/hash and any path after the username (reels, posts, etc.)
   handle = handle.split(/[/?#]/)[0] ?? "";
@@ -37,7 +37,7 @@ export function instagramHandle(value: string) {
 
 /**
  * Phone field shows a fixed +38 prefix; user types 068… .
- * Instagram is entered as @name / URL without the prefix.
+ * Telegram is entered as @username / t.me link without the prefix.
  */
 export function normalizeContact(raw: string) {
   const trimmed = raw.trim();
@@ -77,7 +77,7 @@ export function contactError(contact: string) {
   const normalized = normalizeContact(contact);
 
   if (!normalized) {
-    return "Вкажи телефон або нік в Instagram.";
+    return "Вкажи телефон або нік у Telegram.";
   }
 
   if (normalized.length > CAREER_LIMITS.contact.max) {
@@ -86,13 +86,13 @@ export function contactError(contact: string) {
 
   if (looksLikePhoneInput(normalized) || UA_PHONE.test(compactPhone(normalized))) {
     if (!UA_PHONE.test(compactPhone(normalized))) {
-      return "Вкажи номер як 068 000 00 00.";
+      return "Вкажи український номер як 068 000 00 00.";
     }
     return null;
   }
 
-  if (!INSTAGRAM.test(instagramHandle(normalized))) {
-    return "Вкажи телефон (068…) або нік в Instagram, наприклад @name.";
+  if (!TELEGRAM_USERNAME.test(telegramHandle(normalized))) {
+    return "Вкажи український номер (068…) або нік у Telegram, наприклад @username.";
   }
 
   return null;

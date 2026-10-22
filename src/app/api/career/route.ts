@@ -12,34 +12,46 @@ import { formatCareerTelegramHtml } from "@/lib/career-validation";
 const WINDOW_MS = 60 * 1000;
 /** Successful Telegram sends per IP per window (validation failures do not count). */
 const MAX_REQUESTS = 3;
-const hits = new Map<string, number[]>();
+type RateLimitState = { sentAt: number[]; pending: number };
+const hits = new Map<string, RateLimitState>();
 
 function pruneHits(now: number) {
-  for (const [ip, times] of hits) {
-    const recent = times.filter((time) => now - time < WINDOW_MS);
-    if (recent.length === 0) hits.delete(ip);
-    else hits.set(ip, recent);
+  for (const [ip, state] of hits) {
+    state.sentAt = state.sentAt.filter((time) => now - time < WINDOW_MS);
+    if (state.sentAt.length === 0 && state.pending === 0) hits.delete(ip);
   }
 }
 
 /**
- * In-process cap on successful sends. Shared flood control lives in nginx
- * (`limit_req zone=career`); this layer still limits Telegram spam per replica.
+ * Reserve a slot synchronously before awaiting Telegram so concurrent requests
+ * from the same IP count against the cap. Failed sends release their slot.
  */
-function rateLimited(ip: string) {
+function reserveSend(ip: string) {
   const now = Date.now();
   if (hits.size > 500) pruneHits(now);
 
-  const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
-  hits.set(ip, recent);
-  return recent.length >= MAX_REQUESTS;
-}
+  const state = hits.get(ip) ?? { sentAt: [], pending: 0 };
+  state.sentAt = state.sentAt.filter((time) => now - time < WINDOW_MS);
+  if (state.sentAt.length + state.pending >= MAX_REQUESTS) return null;
 
-function recordHit(ip: string) {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
-  recent.push(now);
-  hits.set(ip, recent);
+  state.pending += 1;
+  hits.set(ip, state);
+
+  let settled = false;
+  return {
+    commit() {
+      if (settled) return;
+      settled = true;
+      state.pending -= 1;
+      state.sentAt.push(Date.now());
+    },
+    release() {
+      if (settled) return;
+      settled = true;
+      state.pending -= 1;
+      if (state.sentAt.length === 0 && state.pending === 0) hits.delete(ip);
+    },
+  };
 }
 
 function asText(value: unknown) {
@@ -126,14 +138,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const ip = clientIp(request.headers);
-  if (rateLimited(ip)) {
-    return NextResponse.json(
-      { ok: false, error: "Забагато спроб. Спробуй пізніше." },
-      { status: 429 },
-    );
-  }
-
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
 
@@ -145,15 +149,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const ip = clientIp(request.headers);
+  const reservation = reserveSend(ip);
+  if (!reservation) {
+    return NextResponse.json(
+      { ok: false, error: "Забагато спроб. Спробуй пізніше." },
+      { status: 429 },
+    );
+  }
+
   const text = formatCareerTelegramHtml(parsed.data);
   const sent = await sendTelegramMessage(token, chatId, text);
   if (!sent) {
+    reservation.release();
     return NextResponse.json(
       { ok: false, error: "Не вдалося надіслати. Спробуй ще раз." },
       { status: 502 },
     );
   }
 
-  recordHit(ip);
+  reservation.commit();
   return NextResponse.json({ ok: true });
 }

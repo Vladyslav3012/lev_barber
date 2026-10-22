@@ -25,22 +25,23 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${site.name} — ${site.city}`,
+    default: site.seoTitle,
     template: `%s — ${site.name}`,
   },
   description: site.description,
   keywords: [
+    "барбершоп у Львові",
     "барбершоп Львів",
     "Lev Barber",
     "барбершоп Lev Barber",
-    "стрижка Львів",
-    "барбер Франка",
+    "чоловіча стрижка Львів",
+    "барбер Івана Франка",
   ],
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: `${site.name} — ${site.city}`,
+    title: site.seoTitle,
     description: site.description,
     url: siteUrl,
     siteName: site.name,
@@ -51,13 +52,13 @@ export const metadata: Metadata = {
         url: "/og.png",
         width: 1200,
         height: 630,
-        alt: `${site.name} — барбершоп у Львові`,
+        alt: site.seoTitle,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — ${site.city}`,
+    title: site.seoTitle,
     description: site.description,
     images: ["/og.png"],
   },

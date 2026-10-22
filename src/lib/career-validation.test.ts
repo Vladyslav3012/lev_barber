@@ -30,9 +30,10 @@ describe("normalizeContact / contactError", () => {
     expect(normalizeContact("+380680000000")).toBe("+380680000000");
   });
 
-  it("accepts Instagram handles and URLs", () => {
+  it("accepts Telegram usernames and links, but not Instagram links", () => {
     expect(contactError("@barber_lev")).toBeNull();
-    expect(contactError("https://instagram.com/barber_lev")).toBeNull();
+    expect(contactError("https://t.me/barber_lev")).toBeNull();
+    expect(contactError("https://instagram.com/barber_lev")).toBeTruthy();
   });
 
   it("rejects incomplete phones", () => {
