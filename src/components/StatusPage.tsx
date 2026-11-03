@@ -22,7 +22,7 @@ export function StatusPage({
         <p className="text-[11px] tracking-[0.32em] text-sand uppercase">
           {site.name} · {code}
         </p>
-        <h1 className="mt-5 font-serif text-4xl leading-tight text-mist italic md:text-5xl">
+        <h1 className="mt-5 font-display text-4xl leading-tight font-medium tracking-[-0.02em] text-mist md:text-5xl">
           {title}
         </h1>
         <p className="mt-5 max-w-md text-[15px] leading-7 text-mist/75">

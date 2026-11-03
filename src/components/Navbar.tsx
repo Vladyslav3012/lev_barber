@@ -195,7 +195,7 @@ export function Navbar() {
       <div
         id="mobile-nav"
         className={`relative overflow-hidden border-t border-white/5 transition-[max-height,opacity] duration-300 lg:hidden ${
-          open ? "max-h-80 opacity-100" : "pointer-events-none max-h-0 opacity-0"
+          open ? "max-h-[calc(100dvh-4rem)] overflow-y-auto opacity-100" : "pointer-events-none max-h-0 opacity-0"
         }`}
         aria-hidden={!open}
       >

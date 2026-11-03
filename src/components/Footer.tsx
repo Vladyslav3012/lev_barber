@@ -16,7 +16,7 @@ export function Footer() {
           >
             {site.name}
           </a>
-          <p className="mt-4 hidden max-w-sm font-serif text-[1.65rem] leading-snug text-mist italic md:block md:text-3xl">
+          <p className="mt-4 hidden max-w-sm font-display text-[1.65rem] leading-snug font-medium text-mist md:block md:text-3xl">
             {site.statement}
           </p>
         </div>

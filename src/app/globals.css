@@ -16,7 +16,7 @@
   --color-stone: #8a8580;
   --color-sand: #c4b5a0;
   --font-sans: var(--font-manrope);
-  --font-serif: var(--font-cormorant);
+  --font-display: var(--font-roboto-condensed);
 }
 
 html {
@@ -73,16 +73,6 @@ body {
 .map-embed {
   border: 0;
   filter: grayscale(1) invert(0.9) contrast(0.85) brightness(0.85);
-}
-
-.career-card-hatch {
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 14px,
-    rgba(196, 181, 160, 0.06) 14px,
-    rgba(196, 181, 160, 0.06) 15px
-  );
 }
 
 /*

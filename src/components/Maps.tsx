@@ -69,10 +69,7 @@ export function Maps() {
           <div className="grid lg:grid-cols-12">
             <div className="flex flex-col justify-between px-5 py-8 md:px-8 md:py-10 lg:col-span-5">
               <div>
-                <p className="text-[11px] tracking-[0.32em] text-sand uppercase">
-                  Контакти
-                </p>
-                <h2 className="mt-4 font-serif text-4xl leading-[1.1] text-mist italic md:text-5xl">
+                <h2 className="font-display text-4xl leading-[1.1] font-medium tracking-[-0.02em] text-mist md:text-5xl">
                   Чекаємо тебе.
                 </h2>
               </div>

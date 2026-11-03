@@ -68,15 +68,9 @@ export function Atmosphere() {
 
   return (
     <section id="atmosphere" className="px-5 py-8 md:px-10 md:py-16 lg:px-16">
-      <Reveal>
-        <p className="mb-10 text-[11px] tracking-[0.32em] text-sand uppercase">
-          Атмосфера
-        </p>
-      </Reveal>
-
       <div className="lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-start lg:gap-16 xl:gap-24">
         <div className="mb-8 max-w-xl lg:order-2 lg:mb-0 lg:sticky lg:top-28 lg:pt-1">
-          <h2 className="font-serif text-3xl leading-tight text-mist italic xl:text-[2.5rem]">
+          <h2 className="font-display text-3xl leading-tight font-medium tracking-[-0.02em] text-mist xl:text-[2.5rem]">
             {site.atmosphere.headline}
           </h2>
           <div className="mt-6 space-y-4 text-[15px] leading-7 text-mist/78 lg:mt-8 lg:space-y-5 xl:text-base">

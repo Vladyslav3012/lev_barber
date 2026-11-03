@@ -255,16 +255,18 @@ export function Hero() {
 
       <div className="relative z-10 flex h-full flex-col px-5 pb-6 md:px-10 md:pb-8 lg:px-16">
         <div className="mt-auto">
-          <p className="hero-rise hero-rise-1 mb-3 text-[11px] tracking-[0.42em] text-sand uppercase md:mb-4">
-            {site.heroEyebrow}
-          </p>
-          <h1 className="hero-rise hero-rise-2 -ml-[0.08em] max-w-none text-[15.5vw] leading-[0.82] font-medium tracking-[-0.045em] text-mist uppercase sm:text-[12.5vw] lg:text-[9.25rem] xl:text-[10.5rem]">
-            {site.name}
+          <h1 className="hero-rise hero-rise-1 font-medium text-mist">
+            <span className="-ml-[0.03em] block font-display text-[15.5vw] leading-[0.95] font-semibold tracking-[-0.025em] uppercase sm:text-[12.5vw] lg:text-[9.25rem] xl:text-[10.5rem]">
+              {site.name}
+            </span>
+            <span className="mt-4 block text-sm leading-6 font-normal tracking-[0.04em] text-mist/85 md:mt-5 md:text-base">
+              Барбершоп у Львові · вул. Івана Франка, 100
+            </span>
           </h1>
-          <div className="hero-rise hero-rise-3 mt-5 max-w-xl md:mt-6">
+          <div className="hero-rise hero-rise-2 mt-5 max-w-xl md:mt-6">
             <p className="hero-tagline">{site.tagline}</p>
           </div>
-          <div className="hero-rise hero-rise-4 mt-6 md:mt-8">
+          <div className="hero-rise hero-rise-3 mt-6 md:mt-8">
             <a
               href={site.booking.href}
               target="_blank"

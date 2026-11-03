@@ -7,6 +7,7 @@ import { Hero } from "@/components/Hero";
 import { JsonLd } from "@/components/JsonLd";
 import { Maps } from "@/components/Maps";
 import { Navbar } from "@/components/Navbar";
+import { Services } from "@/components/Services";
 
 const Career = dynamic(
   () =>
@@ -34,6 +35,7 @@ export default function Home() {
         <Hero />
         <About />
         <Barbers />
+        <Services />
         <Atmosphere />
         <Maps />
         <Career />

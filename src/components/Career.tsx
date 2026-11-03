@@ -19,18 +19,18 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 const fieldClass =
   "w-full bg-transparent py-2.5 text-mist outline-none transition-[border-color,box-shadow] placeholder:text-mist/35";
 
-/** Keyboard focus: sand ring (≥ WCAG non-text contrast vs charcoal). Mouse uses border only. */
+/** Keyboard focus: mist ring (≥ WCAG non-text contrast vs charcoal). Mouse uses border only. */
 function fieldBorder(hasError: boolean) {
   return hasError
     ? "border border-red-400/80 focus-visible:ring-2 focus-visible:ring-red-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
-    : "border border-transparent border-b-mist/25 focus-visible:border-sand focus-visible:ring-2 focus-visible:ring-sand/70 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal";
+    : "border border-transparent border-b-mist/25 focus-visible:border-mist/50 focus-visible:ring-2 focus-visible:ring-mist/50 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal";
 }
 
 /** Contact wraps prefix + input; ring on wrapper when the inner control is :focus-visible. */
 function contactShellBorder(hasError: boolean) {
   return hasError
     ? "border border-red-400/80 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-red-300/70 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal"
-    : "border border-transparent border-b-mist/25 focus-within:border-sand has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-sand/70 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal";
+    : "border border-transparent border-b-mist/25 focus-within:border-mist/50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-mist/50 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal";
 }
 
 export function Career() {
@@ -131,17 +131,12 @@ export function Career() {
   return (
     <section id="career" className="px-5 pt-8 pb-24 md:px-10 md:pt-10 md:pb-32 lg:px-16">
       <Reveal>
-        <p className="mb-5 text-[11px] tracking-[0.32em] text-sand uppercase">
-          Кар’єра
-        </p>
-      </Reveal>
-      <Reveal>
-        <h2 className="max-w-3xl text-[8.5vw] leading-[0.95] font-medium tracking-[-0.03em] text-mist uppercase sm:text-5xl md:text-6xl">
+        <h2 className="max-w-3xl font-display text-[8.5vw] leading-[1.05] font-medium tracking-[-0.02em] text-mist uppercase sm:text-5xl md:text-6xl">
           Хочеш стати частиною нашої команди?
         </h2>
       </Reveal>
       <Reveal>
-        <p className="mt-5 font-serif text-xl text-mist/80 italic md:text-2xl">
+        <p className="mt-5 text-[15px] leading-7 text-mist/80 md:text-base">
           Ми завжди відкриті до нових талантів.
         </p>
       </Reveal>
@@ -150,11 +145,11 @@ export function Career() {
         id="career-form"
         noValidate
         onSubmit={onSubmit}
-        className="relative mt-10 grid max-w-xl gap-5 border-t border-sand/20 pt-8"
+        className="relative mt-10 grid max-w-xl gap-5 border-t border-mist/20 pt-8"
         suppressHydrationWarning
       >
         <label className="grid gap-1.5">
-          <span className="text-[11px] tracking-[0.2em] text-sand uppercase">
+          <span className="text-[11px] tracking-[0.2em] text-mist/55 uppercase">
             Ім’я
           </span>
           <input
@@ -175,14 +170,14 @@ export function Career() {
           ) : null}
         </label>
         <label className="grid gap-1.5">
-          <span className="text-[11px] tracking-[0.2em] text-sand uppercase">
+          <span className="text-[11px] tracking-[0.2em] text-mist/55 uppercase">
             Телефон або Telegram
           </span>
           <div
             className={`flex items-baseline gap-1.5 ${contactShellBorder(Boolean(fieldErrors.contact))}`}
           >
             {phonePrefix ? (
-              <span className="shrink-0 py-2.5 pl-0 text-mist/50 select-none">
+              <span className="shrink-0 py-2.5 pl-0 text-mist/70 select-none">
                 {phonePrefix}
               </span>
             ) : null}
@@ -225,7 +220,7 @@ export function Career() {
           ) : null}
         </label>
         <label className="grid gap-1.5">
-          <span className="text-[11px] tracking-[0.2em] text-sand uppercase">
+          <span className="text-[11px] tracking-[0.2em] text-mist/55 uppercase">
             Про досвід
           </span>
           <textarea
@@ -270,7 +265,7 @@ export function Career() {
         </button>
 
         {status === "ok" ? (
-          <p role="status" className="text-sm text-sand">
+          <p role="status" className="text-sm text-mist">
             Дякуємо. Напишемо тобі.
           </p>
         ) : null}

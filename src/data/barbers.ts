@@ -8,8 +8,14 @@ export type Barber = {
 export const barbers: Barber[] = [
   {
     name: "Богдан",
-    role: "Founder / Ambassador",
+    role: "Засновник / амбасадор",
     image: "/barbers/bogdan.webp",
     instagram: "https://www.instagram.com/bogdan_barber_lviv",
+  },
+  {
+    name: "Жанна",
+    role: "Старший майстер",
+    image: "/barbers/zhanna.webp",
+    instagram: "https://www.instagram.com/b_r.zhanna/",
   },
 ];

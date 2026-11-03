@@ -1,24 +1,10 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { preload } from "react-dom";
 import { site } from "@/data/site";
 import { HERO_POSTER } from "@/lib/hero-assets";
 import { getSiteUrl } from "@/lib/site-url";
+import { manrope, robotoCondensed } from "./fonts";
 import "./globals.css";
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin", "cyrillic"],
-  display: "swap",
-});
-
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
-  subsets: ["latin", "cyrillic"],
-  style: ["normal", "italic"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
 
 const siteUrl = getSiteUrl();
 
@@ -82,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="uk"
-      className={`${manrope.variable} ${cormorant.variable} h-full antialiased`}
+      className={`${manrope.variable} ${robotoCondensed.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body
