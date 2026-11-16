@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/data/site";
+import { trackBookingClick } from "@/lib/analytics";
 import { HERO_POSTER, HERO_VIDEO } from "@/lib/hero-assets";
 import { latchTapFill } from "@/lib/latch-tap";
 
@@ -274,6 +275,7 @@ export function Hero() {
               rel="noopener noreferrer"
               className="hero-cta group inline-flex self-start"
               onPointerDown={latchTapFill}
+              onClick={() => trackBookingClick("hero")}
             >
               <span className="hero-cta-fill" aria-hidden />
               <span className="relative">{site.booking.cta}</span>

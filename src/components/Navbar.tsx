@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/data/site";
+import { trackBookingClick } from "@/lib/analytics";
 import { CalendarIcon, InstagramIcon, TikTokIcon } from "./icons";
 
 function focusableIn(root: HTMLElement) {
@@ -263,6 +264,7 @@ export function Navbar() {
         target="_blank"
         rel="noopener noreferrer"
         className="floating-booking"
+        onClick={() => trackBookingClick("floating")}
         data-floating-booking
         data-visible={floatingBookingVisible}
         aria-label={site.booking.cta}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { preload } from "react-dom";
 import { site } from "@/data/site";
+import { GA_MEASUREMENT_ID } from "@/lib/analytics";
 import { HERO_POSTER } from "@/lib/hero-assets";
 import { getSiteUrl } from "@/lib/site-url";
 import { manrope, robotoCondensed } from "./fonts";
@@ -83,12 +84,12 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-2JH9MEPHN6');
+            gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
         <Script
           id="google-tag"
-          src="https://www.googletagmanager.com/gtag/js?id=G-2JH9MEPHN6"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
       </body>
