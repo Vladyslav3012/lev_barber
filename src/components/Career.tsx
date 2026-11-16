@@ -17,20 +17,20 @@ type FieldName = "name" | "contact" | "message";
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 const fieldClass =
-  "w-full bg-transparent py-2.5 text-mist outline-none transition-[border-color,box-shadow] placeholder:text-mist/35";
+  "w-full bg-transparent py-2.5 text-mist outline-none transition-[border-color,box-shadow] placeholder:text-mist/65";
 
 /** Keyboard focus: mist ring (≥ WCAG non-text contrast vs charcoal). Mouse uses border only. */
 function fieldBorder(hasError: boolean) {
   return hasError
     ? "border border-red-400/80 focus-visible:ring-2 focus-visible:ring-red-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal"
-    : "border border-transparent border-b-mist/25 focus-visible:border-mist/50 focus-visible:ring-2 focus-visible:ring-mist/50 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal";
+    : "border border-transparent border-b-mist/50 focus-visible:border-mist/70 focus-visible:ring-2 focus-visible:ring-mist/50 focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal";
 }
 
 /** Contact wraps prefix + input; ring on wrapper when the inner control is :focus-visible. */
 function contactShellBorder(hasError: boolean) {
   return hasError
     ? "border border-red-400/80 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-red-300/70 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal"
-    : "border border-transparent border-b-mist/25 focus-within:border-mist/50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-mist/50 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal";
+    : "border border-transparent border-b-mist/50 focus-within:border-mist/70 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-mist/50 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-charcoal";
 }
 
 export function Career() {
@@ -149,7 +149,7 @@ export function Career() {
         suppressHydrationWarning
       >
         <label className="grid gap-1.5">
-          <span className="text-[11px] tracking-[0.2em] text-mist/55 uppercase">
+          <span className="text-[11px] tracking-[0.2em] text-mist/75 uppercase">
             Ім’я
           </span>
           <input
@@ -170,7 +170,7 @@ export function Career() {
           ) : null}
         </label>
         <label className="grid gap-1.5">
-          <span className="text-[11px] tracking-[0.2em] text-mist/55 uppercase">
+          <span className="text-[11px] tracking-[0.2em] text-mist/75 uppercase">
             Телефон або Telegram
           </span>
           <div
@@ -220,7 +220,7 @@ export function Career() {
           ) : null}
         </label>
         <label className="grid gap-1.5">
-          <span className="text-[11px] tracking-[0.2em] text-mist/55 uppercase">
+          <span className="text-[11px] tracking-[0.2em] text-mist/75 uppercase">
             Про досвід
           </span>
           <textarea

@@ -266,8 +266,9 @@ export function Hero() {
           <div className="hero-rise hero-rise-2 mt-5 max-w-xl md:mt-6">
             <p className="hero-tagline">{site.tagline}</p>
           </div>
-          <div className="hero-rise hero-rise-3 mt-6 md:mt-8">
+          <div className="hero-rise hero-rise-3 mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 md:mt-8">
             <a
+              id="hero-booking"
               href={site.booking.href}
               target="_blank"
               rel="noopener noreferrer"
@@ -277,6 +278,12 @@ export function Hero() {
               <span className="hero-cta-fill" aria-hidden />
               <span className="relative">{site.booking.cta}</span>
               <CtaArrow />
+            </a>
+            <a
+              href="#services"
+              className="inline-flex min-h-11 items-center text-sm text-mist/90 underline decoration-mist/50 underline-offset-4 transition-colors hover:text-sand focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sand motion-reduce:transition-none"
+            >
+              Послуги та ціни
             </a>
           </div>
         </div>

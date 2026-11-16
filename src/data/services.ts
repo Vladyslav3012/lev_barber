@@ -2,6 +2,7 @@
  * Public Altegio menu, verified on 2026-10-26:
  * https://n1381485.alteg.io/company/1316669/personal/select-services
  * Keep this list in sync when the booking menu changes.
+ * Single-length clipper cut (400 UAH / 30 min) confirmed by the owner on 2026-11-16.
  */
 export const serviceCategories = [
   { id: "haircuts", name: "Стрижки" },
@@ -47,6 +48,13 @@ export const services = [
     detail: "З переходом від 0 до 10 мм",
     price: 600,
     duration: "35 хв",
+  },
+  {
+    name: "Стрижка під одну насадку",
+    mobileName: "Під одну насадку",
+    category: "haircuts",
+    price: 400,
+    duration: "30 хв",
   },
   {
     name: "Подовжена стрижка",

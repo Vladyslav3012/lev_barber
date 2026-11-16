@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { preload } from "react-dom";
 import { site } from "@/data/site";
 import { HERO_POSTER } from "@/lib/hero-assets";
@@ -77,6 +78,19 @@ export default function RootLayout({
       >
         <div className="grain" aria-hidden />
         {children}
+        <Script id="google-tag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-2JH9MEPHN6');
+          `}
+        </Script>
+        <Script
+          id="google-tag"
+          src="https://www.googletagmanager.com/gtag/js?id=G-2JH9MEPHN6"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

@@ -7,7 +7,7 @@ const footerNav = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-sand/20 px-5 pt-16 pb-7 md:px-10 md:pt-20 md:pb-8 lg:px-16">
+    <footer className="border-t border-sand/20 px-5 pt-16 pb-28 md:px-10 md:pt-20 md:pb-28 lg:px-16">
       <div className="grid grid-cols-2 gap-x-8 gap-y-10 lg:grid-cols-12 lg:gap-8">
         <div className="col-span-2 lg:col-span-5">
           <a

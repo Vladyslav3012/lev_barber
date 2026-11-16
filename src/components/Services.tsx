@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { services, serviceCategories, formatPrice } from "@/data/services";
-import { site } from "@/data/site";
 
 export function Services() {
   const [openId, setOpenId] = useState<string | null>(
@@ -31,14 +30,6 @@ export function Services() {
             вул. Івана Франка, 100. Обирай послугу й зручний час у нашому
             онлайн-записі.
           </p>
-          <a
-            href={site.booking.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 hidden min-h-11 items-center border-b border-sand/60 text-sm text-sand transition-colors hover:border-mist hover:text-mist md:inline-flex"
-          >
-            Обрати послугу й записатися
-          </a>
         </div>
 
         <div>
@@ -72,21 +63,21 @@ export function Services() {
                       <span
                         aria-hidden
                         className={`w-3 font-display text-xl leading-none transition-colors duration-300 motion-reduce:transition-none md:text-2xl ${
-                          isOpen ? "text-mist" : "text-mist/40"
+                          isOpen ? "text-mist" : "text-mist/75"
                         }`}
                       >
                         {isOpen ? "−" : "+"}
                       </span>
                       <span
                         className={`font-display text-[21px] leading-tight font-medium tracking-[-0.02em] transition-colors duration-300 motion-reduce:transition-none md:text-[1.65rem] ${
-                          isOpen ? "text-mist" : "text-mist/55"
+                          isOpen ? "text-mist" : "text-mist/80"
                         }`}
                       >
                         {category.name}
                       </span>
                       <span
                         className={`text-xs whitespace-nowrap tabular-nums transition-colors duration-300 motion-reduce:transition-none md:text-sm ${
-                          isOpen ? "text-mist" : "text-mist/40"
+                          isOpen ? "text-mist" : "text-mist/80"
                         }`}
                       >
                         від {formatPrice(startingPrice)}
@@ -126,7 +117,7 @@ export function Services() {
                                 </span>
                               </h4>
                               {"detail" in service && (
-                                <p className="mt-1 text-xs leading-5 text-mist/55 md:text-sm md:leading-6">
+                                <p className="mt-1 text-xs leading-5 text-mist/75 md:text-sm md:leading-6">
                                   {service.detail}
                                 </p>
                               )}
@@ -135,7 +126,7 @@ export function Services() {
                               <p className="text-sm leading-5 whitespace-nowrap text-mist tabular-nums md:text-[15px] md:leading-6">
                                 {formatPrice(service.price)}
                               </p>
-                              <p className="mt-1 text-[11px] leading-5 whitespace-nowrap text-mist/55 md:text-sm md:leading-6">
+                              <p className="mt-1 text-xs leading-5 whitespace-nowrap text-mist/75 md:text-sm md:leading-6">
                                 {service.duration}
                               </p>
                             </div>
@@ -153,8 +144,8 @@ export function Services() {
               Актуальну ціну й тривалість перевіряй під час запису.
             </span>
             <span className="hidden md:inline">
-              Ціни та тривалість за меню онлайн-запису станом на 26 жовтня
-              2026 року. Актуальну вартість перевіряй під час запису.
+              Ціни та тривалість можуть відрізнятися залежно від майстра.
+              Актуальні умови перевіряй під час онлайн-запису.
             </span>
           </p>
         </div>
