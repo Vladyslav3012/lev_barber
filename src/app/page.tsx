@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import { About } from "@/components/About";
 import { Atmosphere } from "@/components/Atmosphere";
 import { Barbers } from "@/components/Barbers";
+import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { JsonLd } from "@/components/JsonLd";
@@ -37,6 +38,7 @@ export default function Home() {
         <Barbers />
         <Services />
         <Atmosphere />
+        <Faq />
         <Maps />
         <Career />
       </main>
