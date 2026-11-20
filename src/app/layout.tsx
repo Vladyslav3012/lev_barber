@@ -70,6 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="uk"
+      data-scroll-behavior="smooth"
       className={`${manrope.variable} ${robotoCondensed.variable} h-full antialiased`}
       suppressHydrationWarning
     >
