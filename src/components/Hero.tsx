@@ -25,7 +25,7 @@ function networkConnection(): NetworkConnection | undefined {
 /**
  * Skip the 2.6MB autoplay file when the user/network asks for less media:
  * reduced motion, Save-Data, or very slow cellular.
- * Phones still play — we only defer attaching <source> so the poster wins LCP.
+ * Phones still play — we only defer attaching src so the poster wins LCP.
  */
 function shouldPlayHeroVideo() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -73,7 +73,7 @@ export function Hero() {
   const frameRef = useRef<HTMLDivElement>(null);
   const cueWrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  // Start without <source> so reduced-motion / first paint never pull the 2.6MB file.
+  // Start without src so reduced-motion / first paint never pull the 2.6MB file.
   const [playVideo, setPlayVideo] = useState(false);
 
   // Lock hero height once so mobile browser chrome show/hide doesn't resize the section.
@@ -122,7 +122,7 @@ export function Hero() {
         return;
       }
 
-      // Defer <source> everywhere so the poster wins LCP (lab + real devices).
+      // Defer src everywhere so the poster wins LCP (lab + real devices).
       if ("requestIdleCallback" in window) {
         idleId = window.requestIdleCallback(enable, { timeout: 1200 });
       } else {
@@ -153,9 +153,8 @@ export function Hero() {
       });
     };
 
-    // play() right after <source> mounts often races the buffer and was
-    // swallowed — video then never started. Retry when data is ready.
-    video.load();
+    // Setting src starts loading automatically. Calling load() here would
+    // abort that request and restart it. Retry playback when data is ready.
     tryPlay();
     video.addEventListener("loadeddata", tryPlay);
     video.addEventListener("canplay", tryPlay);
@@ -238,6 +237,7 @@ export function Hero() {
       <div ref={frameRef} className="absolute inset-0 will-change-transform">
         <video
           ref={videoRef}
+          src={playVideo ? HERO_VIDEO : undefined}
           className="h-full w-full object-cover"
           muted
           loop
@@ -246,9 +246,7 @@ export function Hero() {
           preload={playVideo ? "auto" : "none"}
           poster={HERO_POSTER}
           aria-hidden
-        >
-          {playVideo ? <source src={HERO_VIDEO} type="video/mp4" /> : null}
-        </video>
+        />
       </div>
 
       <div className="absolute inset-0 bg-charcoal/45" />
